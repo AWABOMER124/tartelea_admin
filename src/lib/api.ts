@@ -175,21 +175,62 @@ export interface AdminAuditLog {
   created_at: string;
 }
 
+function isLoopbackHost(hostname?: string | null) {
+  return ["localhost", "127.0.0.1", "0.0.0.0"].includes((hostname || "").toLowerCase());
+}
+
+function isLoopbackBaseUrl(value?: string | null) {
+  if (!value) {
+    return false;
+  }
+
+  try {
+    const url = new URL(normalizeBaseUrl(value));
+    return isLoopbackHost(url.hostname);
+  } catch {
+    return /localhost|127\.0\.0\.1|0\.0\.0\.0/i.test(value);
+  }
+}
+
 export function normalizeBaseUrl(value?: string | null) {
   const base = (value || DEFAULT_API_BASE_URL).trim();
   return base.replace(/\/+$/, "");
 }
 
+export function getDefaultApiBaseUrl() {
+  return normalizeBaseUrl(DEFAULT_API_BASE_URL);
+}
+
+function getPreferredBaseUrl(storedBaseUrl?: string | null) {
+  const configuredBaseUrl = getDefaultApiBaseUrl();
+  const normalizedStoredBaseUrl = storedBaseUrl ? normalizeBaseUrl(storedBaseUrl) : "";
+
+  if (!normalizedStoredBaseUrl) {
+    return configuredBaseUrl;
+  }
+
+  if (
+    typeof window !== "undefined" &&
+    !isLoopbackHost(window.location.hostname) &&
+    isLoopbackBaseUrl(normalizedStoredBaseUrl) &&
+    !isLoopbackBaseUrl(configuredBaseUrl)
+  ) {
+    return configuredBaseUrl;
+  }
+
+  return normalizedStoredBaseUrl;
+}
+
 export function readSession(): AdminSession {
   if (typeof window === "undefined") {
     return {
-      baseUrl: normalizeBaseUrl(DEFAULT_API_BASE_URL),
+      baseUrl: getDefaultApiBaseUrl(),
       token: null,
       user: null,
     };
   }
 
-  const baseUrl = normalizeBaseUrl(window.localStorage.getItem(STORAGE_KEYS.baseUrl));
+  const baseUrl = getPreferredBaseUrl(window.localStorage.getItem(STORAGE_KEYS.baseUrl));
   const token = window.localStorage.getItem(STORAGE_KEYS.token);
   const rawUser = window.localStorage.getItem(STORAGE_KEYS.user);
 
@@ -249,6 +290,14 @@ function ensureAdminAccess(user: SessionUser | null) {
   }
 }
 
+async function safeFetch(input: RequestInfo | URL, init?: RequestInit) {
+  try {
+    return await fetch(input, init);
+  } catch {
+    throw new Error("تعذر الوصول إلى الخادم. تحقق من رابط الـ API وإعدادات CORS.");
+  }
+}
+
 async function parseResponse<T>(response: Response): Promise<T> {
   const json = (await response.json().catch(() => ({}))) as Record<string, unknown>;
   const message =
@@ -270,7 +319,7 @@ async function parseResponse<T>(response: Response): Promise<T> {
 }
 
 export async function resolveCurrentUser(baseUrl: string, token: string) {
-  const response = await fetch(`${normalizeBaseUrl(baseUrl)}/auth/me`, {
+  const response = await safeFetch(`${normalizeBaseUrl(baseUrl)}/auth/me`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -286,11 +335,12 @@ export async function loginWithPassword({
   email,
   password,
 }: {
-  baseUrl: string;
+  baseUrl?: string;
   email: string;
   password: string;
 }) {
-  const response = await fetch(`${normalizeBaseUrl(baseUrl)}/auth/login`, {
+  const resolvedBaseUrl = normalizeBaseUrl(baseUrl);
+  const response = await safeFetch(`${resolvedBaseUrl}/auth/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -311,7 +361,7 @@ export async function loginWithPassword({
   ensureAdminAccess(payload.user ?? null);
 
   const session: AdminSession = {
-    baseUrl: normalizeBaseUrl(baseUrl),
+    baseUrl: resolvedBaseUrl,
     token: payload.token,
     user: payload.user ?? null,
   };
@@ -324,13 +374,14 @@ export async function saveManualToken({
   baseUrl,
   token,
 }: {
-  baseUrl: string;
+  baseUrl?: string;
   token: string;
 }) {
-  const user = await resolveCurrentUser(baseUrl, token);
+  const resolvedBaseUrl = normalizeBaseUrl(baseUrl);
+  const user = await resolveCurrentUser(resolvedBaseUrl, token);
   ensureAdminAccess(user);
   const session: AdminSession = {
-    baseUrl: normalizeBaseUrl(baseUrl),
+    baseUrl: resolvedBaseUrl,
     token,
     user,
   };
@@ -360,7 +411,7 @@ export async function adminRequest<T>(
     body = JSON.stringify(body);
   }
 
-  const response = await fetch(`${session.baseUrl}/admin${path}`, {
+  const response = await safeFetch(`${session.baseUrl}/admin${path}`, {
     ...init,
     headers,
     body: body as BodyInit | null | undefined,
