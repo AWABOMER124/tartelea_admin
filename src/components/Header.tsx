@@ -1,92 +1,90 @@
 "use client";
 
-import { Bell, Search, User, Globe, Moon, Sun, Menu, X, Sparkles } from 'lucide-react';
-import { useUI } from '@/context/UIContext';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useMemo, useState } from "react";
+import { Bell, LogOut, PlugZap, Shield, User } from "lucide-react";
+import { clearSession } from "@/lib/api";
+import { useAdminSession } from "@/hooks/useAdminSession";
+import { SessionDialog } from "@/components/SessionDialog";
+
+const roleLabels: Record<string, string> = {
+  admin: "مدير النظام",
+  moderator: "مشرف",
+  trainer: "مدرب",
+  student: "طالب",
+};
 
 export function Header() {
-  const { language, setLanguage, theme, toggleTheme, sidebarOpen, setSidebarOpen, t } = useUI();
+  const session = useAdminSession();
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const userLabel = useMemo(() => {
+    if (!session.user) {
+      return "غير متصل";
+    }
+
+    return session.user.full_name || session.user.email;
+  }, [session.user]);
+
+  function handleLogout() {
+    clearSession();
+  }
 
   return (
-    <header className="h-20 sidebar-glass z-40 px-6 flex items-center justify-between border-b border-white/5 sticky top-0 w-full transition-all duration-300">
-      <div className="flex items-center gap-4">
-        <button 
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-2 hover:bg-primary/10 rounded-xl transition-all md:hidden text-primary"
-        >
-          <AnimatePresence mode="wait">
-            {sidebarOpen ? (
-              <motion.div key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }}>
-                <X size={24} />
-              </motion.div>
-            ) : (
-              <motion.div key="menu" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }}>
-                <Menu size={24} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </button>
-        
-        {/* Mobile Logo Only */}
-        <div className="flex items-center gap-2 md:hidden">
-          <div className="w-8 h-8 rounded-lg overflow-hidden border border-primary/20 bg-black/40">
-            <img src="/images/logo.png" alt="Logo" className="w-full h-full object-cover" />
+    <>
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-slate-950/85 px-6 backdrop-blur-xl">
+        <div className="mx-auto flex h-20 max-w-[1600px] items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-3 text-cyan-200">
+              <Shield size={22} />
+            </div>
+            <div className="space-y-1">
+              <h1 className="text-2xl font-black tracking-tight text-white">بوابة إدارة ترتيلة</h1>
+              <p className="text-sm text-slate-300">لوحة موحدة لإدارة المنصة عبر الـ Backend API</p>
+            </div>
           </div>
-          <span className="font-bold gradient-text text-lg tracking-tight">ترتيلية</span>
-        </div>
 
-        <div className="hidden md:flex items-center gap-2">
-           {/* Placeholder for content when sidebar is hidden/showing */}
-        </div>
-      </div>
-      
-      <div className="flex-1 max-w-xl mx-8 hidden lg:block">
-        <div className="relative group">
-          <Search className="absolute start-4 top-1/2 -translate-y-1/2 text-foreground/30 group-focus-within:text-primary transition-colors" size={18} />
-          <input 
-            type="text" 
-            placeholder={t('search_placeholder') || "Search for students, workshops, or data..."}
-            className="w-full bg-white/5 border border-border rounded-2xl py-2.5 ps-12 pe-4 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all text-sm placeholder:text-foreground/30"
-          />
-        </div>
-      </div>
-      
-      <div className="flex items-center gap-3 md:gap-6">
-        <div className="hidden sm:flex items-center gap-1 bg-white/[0.03] p-1.5 rounded-2xl border border-white/5 shadow-inner">
-          <button 
-            onClick={toggleTheme}
-            className="p-2 hover:bg-primary/10 rounded-xl transition-colors text-foreground/40 hover:text-primary"
-            title="تبديل المظهر"
-          >
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
-          
-          <button 
-            onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
-            className="flex items-center gap-2 px-3 py-1.5 hover:bg-primary/10 rounded-xl transition-colors font-black text-[9px] uppercase tracking-widest text-foreground/40 hover:text-primary border border-transparent hover:border-primary/10"
-            title="تبديل اللغة"
-          >
-            <Globe size={16} className="text-primary" />
-            <span>{language === 'ar' ? 'English' : 'العربية'}</span>
-          </button>
-        </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setDialogOpen(true)}
+              className="inline-flex items-center gap-2 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 px-4 py-3 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-500/20"
+            >
+              <PlugZap size={16} />
+              {session.isAuthenticated ? "إدارة الاتصال" : "تسجيل الدخول"}
+            </button>
 
-        <button className="relative text-foreground/40 hover:text-primary transition-all p-2.5 bg-white/[0.03] rounded-2xl border border-white/5 hover:border-primary/20 group">
-          <Bell size={20} className="group-hover:rotate-12 transition-transform" />
-          <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-primary rounded-full ring-2 ring-black animate-pulse" />
-        </button>
-        
-        <div className="flex items-center gap-4 ps-4 border-s border-white/5">
-          <div className="text-right hidden xl:block">
-            <p className="text-xs font-black leading-none text-foreground/80 spiritual-text">مدير النظام</p>
-            <p className="text-[9px] text-primary/40 mt-1 uppercase tracking-[0.2em] font-black">Administrator</p>
-          </div>
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-yellow-700/20 to-yellow-400/20 flex items-center justify-center text-primary border border-primary/20 group hover:border-primary transition-all cursor-pointer shadow-lg shadow-black/20">
-            <User size={22} className="group-hover:scale-110 transition-transform" />
+            <button className="relative rounded-2xl border border-white/10 bg-white/5 p-3 text-slate-200 transition hover:bg-white/10">
+              <Bell size={18} />
+              <span className="absolute -left-1 -top-1 h-5 min-w-5 rounded-full bg-amber-400 px-1 text-center text-[10px] font-bold leading-5 text-slate-950">
+                0
+              </span>
+            </button>
+
+            <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
+              <div className="hidden text-right sm:block">
+                <p className="text-sm font-semibold text-white">{userLabel}</p>
+                <p className="text-xs text-slate-400">
+                  {roleLabels[session.user?.role ?? ""] || "لم يتم التحقق من الصلاحية"}
+                </p>
+              </div>
+              <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-slate-900 text-slate-200">
+                <User size={18} />
+              </div>
+            </div>
+
+            {session.isAuthenticated ? (
+              <button
+                onClick={handleLogout}
+                className="inline-flex items-center gap-2 rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:bg-white/5"
+              >
+                <LogOut size={16} />
+                خروج
+              </button>
+            ) : null}
           </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      <SessionDialog open={dialogOpen} onClose={() => setDialogOpen(false)} />
+    </>
   );
 }
-

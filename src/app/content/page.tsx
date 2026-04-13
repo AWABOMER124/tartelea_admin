@@ -1,365 +1,472 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { Card } from '@/components/Card';
-import { 
-  Plus, 
-  Video, 
-  Music, 
-  BookOpen, 
-  Edit2, 
-  Trash2, 
-  ExternalLink,
-  Image as ImageIcon,
-  X,
-  Sparkles,
-  Filter,
-  CheckCircle2,
-  PlayCircle
-} from 'lucide-react';
-import { toast } from 'react-hot-toast';
-import { useUI } from '@/context/UIContext';
-import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { useEffect, useState } from "react";
+import { LoaderCircle, PencilLine, Plus, Search, Trash2, X } from "lucide-react";
+import { toast } from "react-hot-toast";
+import { Card } from "@/components/Card";
+import { ConnectionNotice } from "@/components/ConnectionNotice";
+import { StatusBadge } from "@/components/StatusBadge";
+import { useAdminSession } from "@/hooks/useAdminSession";
+import { adminRequest, AdminContent, formatDate } from "@/lib/api";
 
-type ContentCategory = 'مهارات' | 'تطوير' | 'ثقافة';
+const typeOptions = [
+  { value: "video", label: "فيديو" },
+  { value: "audio", label: "صوتي" },
+  { value: "article", label: "مقال" },
+];
 
-export default function ContentPage() {
-  const { t } = useUI();
-  const [content, setContent] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [filter, setFilter] = useState<ContentCategory | 'all'>('all');
-  
-  const [newContent, setNewContent] = useState({
-    title: '',
-    description: '',
-    type: 'video',
-    category: 'تطوير' as ContentCategory,
-    thumbnail_url: '',
-    content_url: ''
-  });
-  const [file, setFile] = useState<File | null>(null);
+const categoryOptions = [
+  { value: "general", label: "عام" },
+  { value: "tahliya", label: "تحلية" },
+  { value: "takhliya", label: "تخلية" },
+  { value: "tajalli", label: "تجلّي" },
+  { value: "psychological", label: "نفسي" },
+  { value: "sudan", label: "السودان" },
+];
 
-  useEffect(() => {
-    fetchContent();
-  }, []);
+type ContentFormState = {
+  title: string;
+  description: string;
+  type: string;
+  category: string;
+  media_url: string;
+  thumbnail_url: string;
+  duration: string;
+  depth_level: number;
+};
 
-  async function fetchContent() {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/content');
-      const data = await res.json();
-      if (data.success) {
-        setContent(data.content || []);
-      } else {
-        toast.error('فشل في جلب المحتوى');
-      }
-    } catch {
-      toast.error('حدث خطأ أثناء الاتصال بالخادم');
-    }
-    setLoading(false);
+type ContentFilters = {
+  search: string;
+  type: string;
+  category: string;
+};
+
+function createInitialForm(): ContentFormState {
+  return {
+    title: "",
+    description: "",
+    type: "video",
+    category: "general",
+    media_url: "",
+    thumbnail_url: "",
+    duration: "",
+    depth_level: 1,
+  };
+}
+
+function mapContentToForm(content: AdminContent): ContentFormState {
+  return {
+    title: content.title || "",
+    description: content.description || "",
+    type: content.type || "video",
+    category: content.category || "general",
+    media_url: content.media_url || "",
+    thumbnail_url: content.thumbnail_url || "",
+    duration: content.duration || "",
+    depth_level: content.depth_level ?? 1,
+  };
+}
+
+async function fetchContents(filters: ContentFilters) {
+  const params = new URLSearchParams();
+  if (filters.search.trim()) {
+    params.set("search", filters.search.trim());
+  }
+  if (filters.type !== "all") {
+    params.set("type", filters.type);
+  }
+  if (filters.category !== "all") {
+    params.set("category", filters.category);
   }
 
-  async function handleAddContent() {
-    if (!newContent.title) {
-      toast.error('يرجى إدخال العنوان');
+  const query = params.toString();
+  const response = await adminRequest<{ contents: AdminContent[] }>(
+    `/contents${query ? `?${query}` : ""}`,
+  );
+
+  return response.contents;
+}
+
+export default function ContentPage() {
+  const session = useAdminSession();
+  const [contents, setContents] = useState<AdminContent[]>([]);
+  const [form, setForm] = useState<ContentFormState>(() => createInitialForm());
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  async function refreshContents() {
+    try {
+      setLoading(true);
+      const response = await fetchContents({
+        search,
+        type: typeFilter,
+        category: categoryFilter,
+      });
+      setContents(response);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "تعذر تحميل المحتوى.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!session.token) {
+      setContents([]);
       return;
     }
 
-    setUploading(true);
-    let finalUrl = newContent.content_url;
-
-    if (file) {
-      const formData = new FormData();
-      formData.append('file', file);
-      
+    const timeout = window.setTimeout(async () => {
       try {
-        const uploadRes = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData
+        setLoading(true);
+        const response = await fetchContents({
+          search,
+          type: typeFilter,
+          category: categoryFilter,
         });
-        const uploadData = await uploadRes.json();
-        
-        if (!uploadData.success) throw new Error(uploadData.error);
-        finalUrl = uploadData.url;
-      } catch (e: any) {
-        toast.error('فشل الرفع محلياً: ' + e.message);
-        setUploading(false);
-        return;
+        setContents(response);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "تعذر تحميل المحتوى.");
+      } finally {
+        setLoading(false);
       }
+    }, 250);
+
+    return () => window.clearTimeout(timeout);
+  }, [categoryFilter, search, session.token, typeFilter]);
+
+  function resetForm() {
+    setForm(createInitialForm());
+    setEditingId(null);
+  }
+
+  async function handleSaveContent() {
+    if (!form.title.trim()) {
+      toast.error("عنوان المادة مطلوب.");
+      return;
     }
 
     try {
-      const dbRes = await fetch('/api/content', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...newContent, content_url: finalUrl })
-      });
-      const dbData = await dbRes.json();
-
-      if (dbData.success) {
-        toast.success('تمت إضافة المحتوى المختار بنجاح');
-        setShowAddModal(false);
-        setFile(null);
-        setNewContent({ title: '', description: '', type: 'video', category: 'تطوير', thumbnail_url: '', content_url: '' });
-        fetchContent();
+      setSaving(true);
+      if (editingId) {
+        await adminRequest(`/contents/${editingId}`, {
+          method: "PUT",
+          body: form,
+        });
+        toast.success("تم تحديث المادة بنجاح.");
       } else {
-        toast.error('فشل حفظ المحتوى في قاعدة البيانات');
+        await adminRequest("/contents", {
+          method: "POST",
+          body: form,
+        });
+        toast.success("تمت إضافة المادة بنجاح.");
       }
-    } catch {
-      toast.error('فشل الاتصال بالخادم');
+
+      resetForm();
+      await refreshContents();
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : editingId
+            ? "تعذر تحديث المادة."
+            : "تعذر إنشاء المادة.",
+      );
+    } finally {
+      setSaving(false);
     }
-    setUploading(false);
   }
 
-  const categoryColors = {
-    'مهارات': 'from-blue-600/20 to-indigo-600/20 text-blue-400 border-blue-500/30',
-    'تطوير': 'from-amber-600/20 to-yellow-600/20 text-amber-400 border-amber-500/30',
-    'ثقافة': 'from-emerald-600/20 to-teal-600/20 text-emerald-400 border-emerald-500/30'
-  };
+  function handleEditContent(content: AdminContent) {
+    setEditingId(content.id);
+    setForm(mapContentToForm(content));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
-  const filteredContent = filter === 'all' 
-    ? content 
-    : content.filter(item => item.category === filter);
+  async function handleDeleteContent(id: string) {
+    try {
+      await adminRequest(`/contents/${id}`, { method: "DELETE" });
+      setContents((current) => current.filter((item) => item.id !== id));
+      if (editingId === id) {
+        resetForm();
+      }
+      toast.success("تم حذف المادة.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "تعذر حذف المادة.");
+    }
+  }
+
+  if (!session.isAuthenticated) {
+    return <ConnectionNotice />;
+  }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="space-y-10"
-    >
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-        <div>
-          <h1 className="text-4xl font-bold gradient-text mb-3 flex items-center gap-3">
-            إدارة المحتوى 
-            <Sparkles className="text-primary inline" size={24} />
-          </h1>
-          <p className="text-foreground/50 spiritual-text text-lg italic">مكتبة المحتوى التعليمي للمستخدمين على المنصة.</p>
-        </div>
-        <button 
-          onClick={() => setShowAddModal(true)}
-          className="gold-gradient text-black px-8 py-4 rounded-2xl font-bold flex items-center gap-3 transition-all hover:scale-105 shadow-xl shadow-yellow-900/20"
-        >
-          <Plus size={24} strokeWidth={3} />
-          <span>إضافة محتوى جديد</span>
-        </button>
-      </div>
+    <div className="space-y-8">
+      <section>
+        <h2 className="text-3xl font-black text-white">مكتبة المحتوى</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-300">
+          إضافة وتحرير وحذف عناصر المحتوى أصبحت تمر عبر الـ Backend API بدل أي اتصال مباشر مع
+          قاعدة البيانات من الواجهة.
+        </p>
+      </section>
 
-      <div className="flex flex-wrap items-center gap-4 bg-white/5 p-2 rounded-2xl border border-white/10 w-fit">
-        {[
-          { id: 'all', label: 'الكل', icon: Filter },
-          { id: 'مهارات', label: 'مهارات', icon: Sparkles },
-          { id: 'تطوير', label: 'تطوير', icon: BookOpen },
-          { id: 'ثقافة', label: 'ثقافة عامة', icon: Music }
-        ].map((btn) => (
-          <button
-            key={btn.id}
-            onClick={() => setFilter(btn.id as any)}
-            className={cn(
-               "px-6 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2",
-               filter === btn.id ? "bg-primary text-black" : "text-foreground/40 hover:text-foreground hover:bg-white/5"
-            )}
-          >
-            <btn.icon size={16} />
-            {btn.label}
-          </button>
-        ))}
-      </div>
+      <div className="grid gap-6 xl:grid-cols-[1fr_1.6fr]">
+        <Card title={editingId ? "تعديل مادة" : "إضافة مادة جديدة"}>
+          <div className="space-y-4">
+            {editingId ? (
+              <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-4 text-sm text-cyan-100">
+                أنت الآن تعدّل مادة موجودة. يمكنك حفظ التغييرات أو إلغاء التعديل والعودة لنموذج
+                الإضافة.
+              </div>
+            ) : null}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-        {loading ? (
-          [1, 2, 3, 4].map(i => (
-            <div key={i} className="h-80 premium-card animate-pulse" />
-          ))
-        ) : filteredContent.length === 0 ? (
-          <div className="col-span-full flex flex-col items-center justify-center py-32 text-foreground/20">
-            <div className="w-20 h-20 rounded-full border-2 border-dashed border-foreground/20 flex items-center justify-center mb-6">
-               <ImageIcon size={32} />
+            <label className="block text-sm text-slate-300">
+              العنوان
+              <input
+                value={form.title}
+                onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
+                className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+              />
+            </label>
+
+            <label className="block text-sm text-slate-300">
+              الوصف
+              <textarea
+                value={form.description}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, description: event.target.value }))
+                }
+                className="mt-2 h-28 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+              />
+            </label>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="block text-sm text-slate-300">
+                النوع
+                <select
+                  value={form.type}
+                  onChange={(event) => setForm((current) => ({ ...current, type: event.target.value }))}
+                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+                >
+                  {typeOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="block text-sm text-slate-300">
+                التصنيف
+                <select
+                  value={form.category}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, category: event.target.value }))
+                  }
+                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+                >
+                  {categoryOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
-            <p className="font-bold spiritual-text text-xl">لا يوجد محتوى في هذا المسار بعد</p>
-          </div>
-        ) : (
-          filteredContent.map((item, i) => (
-            <motion.div
-              key={item.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.05 }}
-            >
-              <Card className="p-0 border-none h-full hover:border-primary/30 transition-all cursor-default">
-                <div className="relative group">
-                   <div className="aspect-video overflow-hidden rounded-t-2xl">
-                     {item.thumbnail_url ? (
-                       <img src={item.thumbnail_url} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                     ) : (
-                       <div className="w-full h-full bg-gradient-to-br from-white/5 to-white/10 flex items-center justify-center">
-                         <PlayCircle size={48} className="text-white/20" />
-                       </div>
-                     )}
-                   </div>
-                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                      <button className="p-3 bg-white/10 backdrop-blur-md rounded-xl hover:bg-primary hover:text-black transition-all border border-white/20">
-                         <Edit2 size={20} />
-                      </button>
-                      <button className="p-3 bg-white/10 backdrop-blur-md rounded-xl hover:bg-red-500 transition-all border border-white/20">
-                         <Trash2 size={20} />
-                      </button>
-                   </div>
-                   <div className={cn(
-                     "absolute top-4 ps-4 pe-6 py-1 -start-1 rounded-e-full border-y border-e backdrop-blur-xl font-black text-[10px] uppercase shadow-lg shadow-black/50",
-                     categoryColors[item.category as ContentCategory] || categoryColors['تطوير']
-                   )}>
-                     {item.category || 'تطوير'}
-                   </div>
-                   <div className="absolute top-4 end-4">
-                      <div className="w-8 h-8 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center border border-white/10 text-primary">
-                        {item.type === 'video' ? <Video size={16} /> : <Music size={16} />}
-                      </div>
-                   </div>
-                </div>
 
-                <div className="p-6">
-                  <h3 className="text-lg font-bold mb-2 line-clamp-1 spiritual-text">{item.title}</h3>
-                  <p className="text-xs text-foreground/40 mb-6 line-clamp-2 leading-relaxed h-8">{item.description || 'وصف روحاني لم يكتب بعد...'}</p>
-                  
-                  <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                    <div className="flex items-center gap-2">
-                       <div className="w-6 h-6 rounded-lg bg-primary/20 flex items-center justify-center">
-                          <CheckCircle2 size={12} className="text-primary" />
-                       </div>
-                       <span className="text-[10px] font-bold text-foreground/30">{new Date(item.created_at).toLocaleDateString('ar-EG')}</span>
+            <label className="block text-sm text-slate-300">
+              رابط الوسيط أو الملف
+              <input
+                value={form.media_url}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, media_url: event.target.value }))
+                }
+                className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-left text-sm outline-none focus:border-cyan-400/30"
+                dir="ltr"
+              />
+            </label>
+
+            <label className="block text-sm text-slate-300">
+              رابط الصورة المصغرة
+              <input
+                value={form.thumbnail_url}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, thumbnail_url: event.target.value }))
+                }
+                className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-left text-sm outline-none focus:border-cyan-400/30"
+                dir="ltr"
+              />
+            </label>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="block text-sm text-slate-300">
+                المدة
+                <input
+                  value={form.duration}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, duration: event.target.value }))
+                  }
+                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+                />
+              </label>
+
+              <label className="block text-sm text-slate-300">
+                مستوى العمق
+                <input
+                  type="number"
+                  min={1}
+                  value={form.depth_level}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      depth_level: Number.parseInt(event.target.value || "1", 10),
+                    }))
+                  }
+                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+                />
+              </label>
+            </div>
+
+            <button
+              onClick={handleSaveContent}
+              disabled={saving}
+              className="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-cyan-500 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {saving ? <LoaderCircle size={18} className="animate-spin" /> : <Plus size={18} />}
+              {editingId ? "حفظ التعديلات" : "إضافة المادة"}
+            </button>
+
+            {editingId ? (
+              <button
+                onClick={resetForm}
+                type="button"
+                className="inline-flex w-full items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 font-semibold text-white transition hover:bg-white/[0.08]"
+              >
+                <X size={18} />
+                إلغاء التعديل
+              </button>
+            ) : null}
+          </div>
+        </Card>
+
+        <Card title="العناصر المنشورة">
+          <div className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-[1.2fr_0.8fr_0.8fr]">
+              <label className="relative block text-sm text-slate-300">
+                البحث
+                <Search
+                  className="pointer-events-none absolute right-4 top-[3.25rem] -translate-y-1/2 text-slate-500"
+                  size={18}
+                />
+                <input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="ابحث بالعنوان أو الوصف..."
+                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 py-3 pr-12 pl-4 text-sm outline-none focus:border-cyan-400/30"
+                />
+              </label>
+
+              <label className="block text-sm text-slate-300">
+                تصفية النوع
+                <select
+                  value={typeFilter}
+                  onChange={(event) => setTypeFilter(event.target.value)}
+                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+                >
+                  <option value="all">كل الأنواع</option>
+                  {typeOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="block text-sm text-slate-300">
+                تصفية التصنيف
+                <select
+                  value={categoryFilter}
+                  onChange={(event) => setCategoryFilter(event.target.value)}
+                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+                >
+                  <option value="all">كل التصنيفات</option>
+                  {categoryOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            {loading ? (
+              <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 text-center text-sm text-slate-400">
+                <span className="inline-flex items-center gap-3">
+                  <LoaderCircle size={16} className="animate-spin" />
+                  جارٍ تحميل المكتبة...
+                </span>
+              </div>
+            ) : contents.length === 0 ? (
+              <p className="text-sm text-slate-400">لا توجد عناصر محتوى بعد.</p>
+            ) : (
+              contents.map((item) => (
+                <div
+                  key={item.id}
+                  className="rounded-3xl border border-white/10 bg-white/[0.03] p-5"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <StatusBadge
+                          label={typeOptions.find((type) => type.value === item.type)?.label || item.type}
+                          tone="info"
+                        />
+                        <StatusBadge
+                          label={
+                            categoryOptions.find((category) => category.value === item.category)?.label ||
+                            item.category
+                          }
+                          tone="neutral"
+                        />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-white">{item.title}</h3>
+                        <p className="mt-2 text-sm leading-7 text-slate-300">
+                          {item.description || "بدون وصف تفصيلي."}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-4 text-xs text-slate-500">
+                        <span>التاريخ: {formatDate(item.created_at)}</span>
+                        <span>العمق: {item.depth_level ?? 1}</span>
+                      </div>
                     </div>
-                    <a 
-                      href={item.content_url} 
-                      target="_blank" 
-                      className="text-[10px] font-black uppercase text-primary tracking-widest hover:underline flex items-center gap-1"
-                    >
-                      معاينة <ExternalLink size={10} />
-                    </a>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleEditContent(item)}
+                        className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-3 text-cyan-100 transition hover:bg-cyan-500/20"
+                      >
+                        <PencilLine size={16} />
+                      </button>
+
+                      <button
+                        onClick={() => handleDeleteContent(item.id)}
+                        className="rounded-2xl border border-rose-400/20 bg-rose-500/10 p-3 text-rose-200 transition hover:bg-rose-500/20"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </Card>
-            </motion.div>
-          ))
-        )}
+              ))
+            )}
+          </div>
+        </Card>
       </div>
-
-      {/* Modern Add Modal */}
-      <AnimatePresence>
-        {showAddModal && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="w-full max-w-2xl bg-[#0a0a0a] border border-primary/20 rounded-[32px] overflow-hidden shadow-2xl shadow-yellow-900/10"
-            >
-              <div className="p-8 border-b border-white/5 flex justify-between items-center">
-                <div>
-                   <h2 className="text-2xl font-bold spiritual-text gradient-text">إضافة محتوى جديد</h2>
-                   <p className="text-xs text-foreground/40 mt-1 uppercase tracking-widest">Add New Content</p>
-                </div>
-                <button onClick={() => setShowAddModal(false)} className="p-3 hover:bg-white/5 rounded-2xl text-foreground/20 hover:text-white transition-all">
-                  <X size={24} />
-                </button>
-              </div>
-
-              <div className="p-8 space-y-6">
-                <div className="grid grid-cols-2 gap-6">
-                   <div className="col-span-2">
-                      <label className="text-[10px] font-black text-primary/60 uppercase tracking-widest mb-2 block">عنوان المحتوى</label>
-                      <input 
-                        type="text" 
-                        placeholder="أدخل عنواناً ملهماً..."
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 focus:ring-2 focus:ring-primary/20 focus:border-primary/40 focus:outline-none transition-all placeholder:text-foreground/20"
-                        value={newContent.title}
-                        onChange={(e) => setNewContent({...newContent, title: e.target.value})}
-                      />
-                   </div>
-
-                   <div>
-                      <label className="text-[10px] font-black text-primary/60 uppercase tracking-widest mb-2 block">تصنيف المحتوى</label>
-                      <select 
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 focus:outline-none focus:border-primary/40 transition-all appearance-none cursor-pointer"
-                        value={newContent.category}
-                        onChange={(e) => setNewContent({...newContent, category: e.target.value as any})}
-                      >
-                        <option value="مهارات">مهارات</option>
-                        <option value="تطوير">تطوير الأعمال</option>
-                        <option value="ثقافة">ثقافة عامة</option>
-                      </select>
-                   </div>
-
-                   <div>
-                      <label className="text-[10px] font-black text-primary/60 uppercase tracking-widest mb-2 block">نوع الوسائط</label>
-                      <div className="flex gap-2">
-                        {['video', 'audio'].map((t) => (
-                          <button
-                            key={t}
-                            onClick={() => setNewContent({...newContent, type: t})}
-                            className={cn(
-                               "flex-1 py-3.5 rounded-2xl border text-sm font-bold flex items-center justify-center gap-2 transition-all",
-                               newContent.type === t ? "bg-primary text-black border-primary shadow-lg shadow-yellow-900/20" : "bg-white/5 border-white/10 text-foreground/40 hover:bg-white/10"
-                            )}
-                          >
-                             {t === 'video' ? <Video size={16} /> : <Music size={16} />}
-                             {t === 'video' ? 'فيديو' : 'صوت'}
-                          </button>
-                        ))}
-                      </div>
-                   </div>
-                </div>
-
-                <div>
-                   <label className="text-[10px] font-black text-primary/60 uppercase tracking-widest mb-2 block">وصف المحتوى</label>
-                   <textarea 
-                     rows={3}
-                     className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 focus:outline-none focus:border-primary/40 transition-all resize-none placeholder:text-foreground/20"
-                     placeholder="وصف موضوع المادة التعليمية..."
-                     value={newContent.description}
-                     onChange={(e) => setNewContent({...newContent, description: e.target.value})}
-                   />
-                </div>
-
-                <div className="p-6 border-2 border-dashed border-white/10 rounded-[28px] text-center hover:border-primary/20 transition-all group">
-                   <input 
-                      type="file" id="file-upload" className="hidden"
-                      onChange={(e) => setFile(e.target.files?.[0] || null)}
-                    />
-                    <label htmlFor="file-upload" className="cursor-pointer">
-                       <PlayCircle size={40} className="mx-auto mb-3 text-foreground/20 group-hover:text-primary transition-colors" />
-                       <p className="text-sm font-bold">{file ? file.name : 'اسحب الملف هنا أو اضغط للرفع'}</p>
-                       <p className="text-[10px] text-foreground/30 mt-1 uppercase tracking-tighter">MP4, MP3 up to 500MB</p>
-                    </label>
-                </div>
-              </div>
-
-              <div className="p-8 bg-white/5 flex gap-4">
-                 <button 
-                  onClick={() => setShowAddModal(false)}
-                  className="px-8 py-4 rounded-2xl border border-white/10 font-bold hover:bg-white/10 transition-all flex-1"
-                >
-                  إلغاء
-                </button>
-                <button 
-                  onClick={handleAddContent}
-                  disabled={uploading}
-                  className="px-8 py-4 rounded-2xl gold-gradient text-black font-extrabold shadow-xl shadow-yellow-900/20 transition-all hover:scale-[1.02] flex-1 flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  {uploading ? <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : <Sparkles size={20} />}
-                  {uploading ? 'جاري الرفع...' : 'نشر المحتوى للمستخدمين'}
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+    </div>
   );
 }
-

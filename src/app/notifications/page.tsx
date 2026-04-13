@@ -1,198 +1,198 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { Card } from '@/components/Card';
-import { 
-  Bell, 
-  Send, 
-  MessageSquare, 
-  Volume2, 
-  Info,
-  History,
-  Trash2,
-  Users,
-  Shield
-} from 'lucide-react';
-import { toast } from 'react-hot-toast';
-import { cn } from '@/lib/utils';
-import { useUI } from '@/context/UIContext';
+import { useEffect, useState } from "react";
+import { BellRing, LoaderCircle, Megaphone, Send } from "lucide-react";
+import { toast } from "react-hot-toast";
+import { Card } from "@/components/Card";
+import { ConnectionNotice } from "@/components/ConnectionNotice";
+import { StatusBadge } from "@/components/StatusBadge";
+import { useAdminSession } from "@/hooks/useAdminSession";
+import { adminRequest, AdminNotification, formatDate } from "@/lib/api";
+
+const audienceOptions = [
+  { value: "all", label: "الجميع" },
+  { value: "admin", label: "المديرون" },
+  { value: "moderator", label: "المشرفون" },
+  { value: "trainer", label: "المدربون" },
+  { value: "student", label: "الطلاب" },
+];
 
 export default function NotificationsPage() {
-  const { t } = useUI();
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const session = useAdminSession();
+  const [notifications, setNotifications] = useState<AdminNotification[]>([]);
+  const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
-  const [newNotification, setNewNotification] = useState({
-    title: '',
-    body: '',
-    type: 'system',
-    target: 'all' // all, students, trainers
+  const [form, setForm] = useState({
+    title: "",
+    message: "",
+    type: "system",
+    target_role: "all",
   });
 
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
-
-  async function fetchNotifications() {
-    setLoading(true);
+  async function loadNotifications() {
     try {
-      const res = await fetch('/api/notifications');
-      const data = await res.json();
-      if (data.success) {
-        setNotifications(data.notifications || []);
-      } else {
-        console.error('Fetch notifications error:', data.error);
-      }
-    } catch (e) {
-      console.error('Fetch error:', e);
+      setLoading(true);
+      const response = await adminRequest<{ notifications: AdminNotification[] }>("/notifications");
+      setNotifications(response.notifications);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "تعذر تحميل سجل الإشعارات.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
-  async function handleSendNotification() {
-    if (!newNotification.title || !newNotification.body) {
-      toast.error('أدخل العنوان والنص أولاً');
+  useEffect(() => {
+    if (!session.token) {
+      setNotifications([]);
       return;
     }
 
-    setSending(true);
-    try {
-      const res = await fetch('/api/notifications', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newNotification)
-      });
-      const data = await res.json();
+    void loadNotifications();
+  }, [session.token]);
 
-      if (data.success) {
-        toast.success('تم إرسال التنبيه بنجاح!');
-        setNewNotification({ ...newNotification, title: '', body: '' });
-        fetchNotifications();
-      } else {
-        toast.error('فشل إرسال التنبيه');
-      }
-    } catch {
-      toast.error('حدث خطأ أثناء الاتصال بالخادم');
+  async function handleBroadcast() {
+    if (!form.title.trim() || !form.message.trim()) {
+      toast.error("العنوان والنص مطلوبان.");
+      return;
     }
-    setSending(false);
+
+    try {
+      setSending(true);
+      const response = await adminRequest<{ delivered: number; audience: string }>(
+        "/notifications/broadcast",
+        {
+          method: "POST",
+          body: form,
+        },
+      );
+      toast.success(`تم إرسال ${response.delivered} إشعار إلى ${response.audience}.`);
+      setForm({ title: "", message: "", type: "system", target_role: "all" });
+      await loadNotifications();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "تعذر إرسال الإشعار.");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  if (!session.isAuthenticated) {
+    return <ConnectionNotice />;
   }
 
   return (
-    <div className="space-y-8 text-start">
-      <div>
-        <h2 className="text-3xl font-bold text-foreground mb-2">{t('notifications')}</h2>
-        <p className="text-foreground/50">Send real-time alerts and updates to all Tartelea users.</p>
-      </div>
+    <div className="space-y-8">
+      <section>
+        <h2 className="text-3xl font-black text-white">الإشعارات والبث الجماعي</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-300">
+          يتم الآن إنشاء إشعارات البث من خلال الـ Backend نفسه مع احترام الأدوار المستهدفة وسجل
+          مركزي لكل عملية إرسال.
+        </p>
+      </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Card title="إنشاء تنبيه جديد" className="border-border bg-card shadow-lg">
-          <div className="space-y-6">
-            <div>
-              <label className="block text-[10px] font-bold text-foreground/50 mb-2 uppercase tracking-widest ps-1">العنوان</label>
-              <input 
-                type="text" 
-                placeholder="مثال: دورة جديدة متاحة الآن!"
-                className="w-full bg-foreground/5 border border-border rounded-xl px-4 py-3 focus:outline-none focus:border-primary transition-all text-sm font-bold"
-                value={newNotification.title}
-                onChange={(e) => setNewNotification({...newNotification, title: e.target.value})}
+      <div className="grid gap-6 xl:grid-cols-[1fr_1.3fr]">
+        <Card title="إرسال إشعار جديد">
+          <div className="space-y-4">
+            <label className="block text-sm text-slate-300">
+              العنوان
+              <input
+                value={form.title}
+                onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
+                className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
               />
-            </div>
-            
-            <div>
-              <label className="block text-[10px] font-bold text-foreground/50 mb-2 uppercase tracking-widest ps-1">نص التنبيه</label>
-              <textarea 
-                placeholder="اكتب تفاصيل التنبيه هنا..."
-                className="w-full bg-foreground/5 border border-border rounded-xl px-4 py-3 focus:outline-none focus:border-primary h-36 text-sm resize-none"
-                value={newNotification.body}
-                onChange={(e) => setNewNotification({...newNotification, body: e.target.value})}
+            </label>
+
+            <label className="block text-sm text-slate-300">
+              الرسالة
+              <textarea
+                value={form.message}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, message: event.target.value }))
+                }
+                className="mt-2 h-32 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
               />
+            </label>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="block text-sm text-slate-300">
+                النوع
+                <select
+                  value={form.type}
+                  onChange={(event) => setForm((current) => ({ ...current, type: event.target.value }))}
+                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+                >
+                  <option value="system">نظامي</option>
+                  <option value="room">غرفة</option>
+                  <option value="message">رسالة</option>
+                </select>
+              </label>
+
+              <label className="block text-sm text-slate-300">
+                الجمهور المستهدف
+                <select
+                  value={form.target_role}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, target_role: event.target.value }))
+                  }
+                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+                >
+                  {audienceOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <label className="block text-[10px] font-bold text-foreground/50 mb-3 uppercase tracking-widest ps-1">نوع التنبيه</label>
-                <div className="flex gap-2">
-                  {[
-                    { id: 'system', icon: Info, color: 'text-blue-500' },
-                    { id: 'room', icon: Volume2, color: 'text-emerald-500' },
-                    { id: 'msg', icon: MessageSquare, color: 'text-purple-500' }
-                  ].map((t) => (
-                    <button
-                      key={t.id}
-                      onClick={() => setNewNotification({...newNotification, type: t.id})}
-                      className={cn(
-                        'flex-1 p-3 rounded-xl border transition-all flex flex-col items-center gap-2',
-                        newNotification.type === t.id ? 'bg-primary/10 border-primary text-primary shadow-sm' : 'bg-foreground/5 border-border text-foreground/40 hover:bg-foreground/10'
-                      )}
-                    >
-                      <t.icon size={20} className={newNotification.type === t.id ? 'text-primary' : 'text-foreground/40'} />
-                      <span className="text-[9px] font-black uppercase tracking-tighter">{t.id}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-[10px] font-bold text-foreground/50 mb-3 uppercase tracking-widest ps-1">الفئة المستهدفة</label>
-                <div className="flex gap-2">
-                  {[
-                    { id: 'all', label: 'الكل', icon: Users },
-                    { id: 'trainer', label: 'المدربين', icon: Shield }
-                  ].map((t) => (
-                    <button
-                      key={t.id}
-                      onClick={() => setNewNotification({...newNotification, target: t.id})}
-                      className={cn(
-                        'flex-1 p-3 rounded-xl border transition-all flex flex-col items-center gap-2',
-                        newNotification.target === t.id ? 'bg-primary/10 border-primary text-primary shadow-sm' : 'bg-foreground/5 border-border text-foreground/40 hover:bg-foreground/10'
-                      )}
-                    >
-                      <t.icon size={20} />
-                      <span className="text-[9px] font-black uppercase tracking-tighter">{t.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <button 
-              onClick={handleSendNotification}
+            <button
+              onClick={handleBroadcast}
               disabled={sending}
-              className="w-full bg-primary hover:bg-primary/80 disabled:opacity-50 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-3 transition-all shadow-xl shadow-primary/20 mt-4 group uppercase tracking-widest text-sm"
+              className="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-cyan-500 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <Send size={20} className={cn(sending ? 'animate-bounce' : 'group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform')} />
-              <span>{sending ? 'جاري الإرسال...' : 'بث التنبيه الآن'}</span>
+              {sending ? <LoaderCircle size={18} className="animate-spin" /> : <Send size={18} />}
+              إرسال البث
             </button>
           </div>
         </Card>
 
-        <Card title="آخر التنبيهات المرسلة" className="border-border bg-card shadow-lg">
+        <Card title="السجل الأخير">
           <div className="space-y-4">
             {loading ? (
-              [1, 2, 3, 4].map(i => <div key={i} className="h-20 glass animate-pulse rounded-2xl" />)
-            ) : notifications.length === 0 ? (
-              <div className="h-64 flex flex-col items-center justify-center text-foreground/20 gap-3 border-2 border-dashed border-border rounded-2xl bg-foreground/[0.01]">
-                <History size={48} className="opacity-10" />
-                <p className="font-bold text-foreground/30 uppercase tracking-widest">لا يوجد سجل تنبيهات</p>
+              <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 text-center text-sm text-slate-400">
+                <span className="inline-flex items-center gap-3">
+                  <LoaderCircle size={16} className="animate-spin" />
+                  جارٍ تحميل السجل...
+                </span>
               </div>
+            ) : notifications.length === 0 ? (
+              <p className="text-sm text-slate-400">لا يوجد سجل إشعارات حتى الآن.</p>
             ) : (
-              notifications.map((notif) => (
-                <div key={notif.id} className="p-4 rounded-2xl bg-foreground/[0.01] border border-border flex items-start justify-between group hover:bg-foreground/[0.02] transition-colors">
-                  <div className="flex gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20 shadow-sm">
-                      <Bell size={20} className="text-primary" />
-                    </div>
-                    <div>
-                      <h5 className="font-bold text-foreground text-sm leading-tight">{notif.title}</h5>
-                      <p className="text-xs text-foreground/50 line-clamp-1 mt-1 leading-relaxed">{notif.body}</p>
-                      <p className="text-[10px] text-foreground/30 mt-3 font-bold uppercase tracking-widest">
-                        {new Date(notif.created_at).toLocaleString('ar-EG')} • {notif.type}
-                      </p>
+              notifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className="rounded-3xl border border-white/10 bg-white/[0.03] p-5"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-4">
+                      <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-cyan-100">
+                        {notification.type === "system" ? <Megaphone size={18} /> : <BellRing size={18} />}
+                      </div>
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-semibold text-white">{notification.title}</p>
+                          <StatusBadge label={notification.type} tone="info" />
+                        </div>
+                        <p className="mt-2 text-sm leading-7 text-slate-300">
+                          {notification.message || "بدون رسالة نصية."}
+                        </p>
+                        <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-500">
+                          <span>المرسل: {notification.actor_name || "النظام"}</span>
+                          <span>المستلمون: {notification.delivered_count ?? 0}</span>
+                          <span>{formatDate(notification.created_at)}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <button className="p-2.5 opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-500 hover:bg-red-500/10 rounded-xl">
-                    <Trash2 size={18} />
-                  </button>
                 </div>
               ))
             )}

@@ -1,217 +1,259 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { Card } from '@/components/Card';
-import { 
-  Users, 
-  Video, 
-  Volume2, 
-  TrendingUp, 
-  ArrowUpRight, 
-  ArrowDownRight,
-  Clock,
-  Sparkles,
-  Zap,
+import { useEffect, useState } from "react";
+import {
+  AlertTriangle,
+  BookOpen,
+  CheckCircle2,
+  Radio,
   Shield,
-  Heart
-} from 'lucide-react';
-import { motion } from 'framer-motion';
-import { 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
+  Users,
+} from "lucide-react";
+import {
+  Area,
   AreaChart,
-  Area
-} from 'recharts';
-import { cn } from '@/lib/utils';
-import { useUI } from '@/context/UIContext';
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { toast } from "react-hot-toast";
+import { Card } from "@/components/Card";
+import { ConnectionNotice } from "@/components/ConnectionNotice";
+import { StatusBadge } from "@/components/StatusBadge";
+import { useAdminSession } from "@/hooks/useAdminSession";
+import {
+  adminRequest,
+  DashboardResponse,
+  formatCompactNumber,
+  formatDate,
+} from "@/lib/api";
 
-const data = [
-  { name: 'Jan', listeners: 1200, activity: 65 },
-  { name: 'Feb', listeners: 2100, activity: 72 },
-  { name: 'Mar', listeners: 1800, activity: 85 },
-  { name: 'Apr', listeners: 2400, activity: 90 },
-  { name: 'May', listeners: 3200, activity: 88 },
-  { name: 'Jun', listeners: 4000, activity: 95 },
-  { name: 'Jul', listeners: 5200, activity: 98 },
-];
+const overviewCards = [
+  {
+    key: "totalUsers",
+    label: "إجمالي المستخدمين",
+    icon: Users,
+    color: "text-cyan-200 bg-cyan-500/10",
+  },
+  {
+    key: "pendingApprovals",
+    label: "طلبات بانتظار الاعتماد",
+    icon: AlertTriangle,
+    color: "text-amber-200 bg-amber-500/10",
+  },
+  {
+    key: "totalCourses",
+    label: "دورات المدربين",
+    icon: BookOpen,
+    color: "text-emerald-200 bg-emerald-500/10",
+  },
+  {
+    key: "totalLiveRooms",
+    label: "غرف مباشرة نشطة",
+    icon: Radio,
+    color: "text-violet-200 bg-violet-500/10",
+  },
+] as const;
 
-export default function Dashboard() {
-  const { t, theme } = useUI();
-  const [stats, setStats] = useState({
-    totalStudents: 0,
-    activeHalaqat: 0,
-    totalContent: 0,
-    enlightenmentIndex: 88
-  });
+export default function DashboardPage() {
+  const session = useAdminSession();
+  const [stats, setStats] = useState<DashboardResponse | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    async function fetchStats() {
-      try {
-        const res = await fetch('/api/crm');
-        const data = await res.json();
-        
-        if (data.success) {
-          setStats(data.stats);
-        }
-      } catch (e) {
-        console.error("Failed to fetch dashboard stats", e);
-      }
-
+    if (!session.token) {
+      setStats(null);
+      return;
     }
 
-    fetchStats();
-  }, []);
+    async function loadStats() {
+      try {
+        setLoading(true);
+        const response = await adminRequest<DashboardResponse>("/stats");
+        setStats(response);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "تعذر تحميل الإحصاءات.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    void loadStats();
+  }, [session.token]);
+
+  if (!session.isAuthenticated) {
+    return <ConnectionNotice />;
+  }
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="space-y-10"
-    >
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-4xl font-bold gradient-text mb-2">مرحباً بك في لوحة تحكم المدرسة</h1>
-          <p className="text-foreground/50 spiritual-text text-lg">إدارة وتتبع أداء المنصة ونشاط المستخدمين.</p>
+    <div className="space-y-8">
+      <section className="flex flex-wrap items-end justify-between gap-4">
+        <div className="space-y-3">
+          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-100">
+            <Shield size={14} />
+            تحكم مركزي موحد
+          </div>
+          <div>
+            <h2 className="text-3xl font-black text-white lg:text-4xl">نظرة تنفيذية على المنصة</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-300">
+              جميع الأرقام هنا صادرة من الـ Backend API مباشرة، بما في ذلك الأدوار، الاعتمادات،
+              المحتوى، والغرف النشطة.
+            </p>
+          </div>
         </div>
-        <div className="flex gap-3">
-          <button className="gold-gradient text-black font-bold px-6 py-3 rounded-2xl shadow-lg shadow-yellow-900/20 hover:scale-105 transition-transform">
-             {t('sync_database') || "تحديث البيانات"}
-          </button>
+
+        <div className="rounded-3xl border border-white/10 bg-white/[0.04] px-5 py-4 text-sm text-slate-300">
+          <p>المستخدم المتصل: {session.user?.full_name || session.user?.email || "غير معروف"}</p>
+          <p className="mt-1 text-xs text-slate-400">نقطة الاتصال: {session.baseUrl}</p>
         </div>
-      </header>
+      </section>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-        <StatCard 
-          title="إجمالي المستخدمين"
-          value={stats.totalStudents.toLocaleString()} 
-          icon={Users} 
-          trend="+18%" 
-          trendUp={true} 
-          delay={0.1}
-        />
-        <StatCard 
-          title="الحلقات النشطة"
-          value={stats.activeHalaqat} 
-          icon={Volume2} 
-          trend="Live Now" 
-          trendUp={true} 
-          delay={0.2}
-          isLive
-        />
-        <StatCard 
-          title="المحتوى المعرفي"
-          value={stats.totalContent} 
-          icon={Video} 
-          trend="+12 هذا الأسبوع" 
-          trendUp={true} 
-          delay={0.3}
-        />
-        <StatCard 
-          title="مؤشر التفاعل العام"
-          value={`${stats.enlightenmentIndex}%`} 
-          icon={Sparkles} 
-          trend="+5%" 
-          trendUp={true} 
-          delay={0.4}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-          className="lg:col-span-2"
-        >
-          <Card title="تحليلات التفاعل">
-            <div className="h-[400px] w-full mt-6">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data}>
-                  <defs>
-                    <linearGradient id="colorWave" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#D4AF37" stopOpacity={0.4}/>
-                      <stop offset="95%" stopColor="#D4AF37" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(212, 175, 55, 0.05)" vertical={false} />
-                  <XAxis dataKey="name" stroke="rgba(212, 175, 55, 0.3)" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="rgba(212, 175, 55, 0.3)" fontSize={12} tickLine={false} axisLine={false} />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'rgba(10, 10, 10, 0.9)', 
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(212, 175, 55, 0.2)', 
-                      borderRadius: '16px' 
-                    }}
-                    itemStyle={{ color: '#D4AF37' }}
-                  />
-                  <Area type="monotone" dataKey="listeners" stroke="#D4AF37" strokeWidth={4} fillOpacity={1} fill="url(#colorWave)" />
-                </AreaChart>
-              </ResponsiveContainer>
+      <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        {overviewCards.map((card) => (
+          <Card key={card.key}>
+            <div className="flex items-start justify-between gap-4">
+              <div className={`rounded-2xl p-3 ${card.color}`}>
+                <card.icon size={22} />
+              </div>
+              <StatusBadge
+                label={card.key === "pendingApprovals" ? "مراجعة" : "مباشر"}
+                tone={card.key === "pendingApprovals" ? "warning" : "info"}
+              />
+            </div>
+            <div className="mt-6">
+              <p className="text-sm text-slate-400">{card.label}</p>
+              <p className="mt-2 text-4xl font-black text-white">
+                {loading || !stats ? "..." : formatCompactNumber(stats.overview[card.key])}
+              </p>
             </div>
           </Card>
-        </motion.div>
+        ))}
+      </section>
 
-        <div className="space-y-6">
-           <Card title="أحدث النشاطات" className="h-full">
-            <div className="space-y-6 mt-4">
-              {[
-                { label: "ورشة عمل 'التدبر' بدأت", time: "الآن", icon: Zap, color: "text-amber-500" },
-                { label: "رفع مقال 'اخلع نعليك'", time: "منذ ساعتين", icon: Shield, color: "text-blue-500" },
-                { label: "50 طالب جديد انضموا", time: "اليوم", icon: Heart, color: "text-rose-500" },
-                { label: "تحديث شروط الاستخدام", time: "بالأمس", icon: Clock, color: "text-emerald-500" }
-              ].map((act, i) => (
-                <div key={i} className="flex gap-4 items-start p-3 rounded-2xl hover:bg-white/5 transition-colors group">
-                  <div className={cn("w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0 border border-white/10 group-hover:border-primary/30 transition-all", act.color)}>
-                    <act.icon size={18} />
-                  </div>
+      <section className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
+        <Card title="منحنى التسجيلات خلال 7 أيام">
+          <div className="h-80 pt-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={stats?.trends.dailySignups ?? []}>
+                <defs>
+                  <linearGradient id="signupGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="#38bdf8" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
+                <XAxis dataKey="label" stroke="rgba(203,213,225,0.7)" tickLine={false} axisLine={false} />
+                <YAxis stroke="rgba(203,213,225,0.7)" tickLine={false} axisLine={false} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#07131c",
+                    borderColor: "rgba(255,255,255,0.08)",
+                    borderRadius: "16px",
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="total"
+                  stroke="#38bdf8"
+                  strokeWidth={3}
+                  fillOpacity={1}
+                  fill="url(#signupGradient)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+
+        <Card title="توزيع أنواع المحتوى">
+          <div className="h-80 pt-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={stats?.trends.contentDistribution ?? []}
+                  dataKey="value"
+                  nameKey="name"
+                  innerRadius={70}
+                  outerRadius={105}
+                  paddingAngle={4}
+                >
+                  {(stats?.trends.contentDistribution ?? []).map((entry, index) => (
+                    <Cell
+                      key={`${entry.name}-${index}`}
+                      fill={["#38bdf8", "#10b981", "#f59e0b"][index % 3]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#07131c",
+                    borderColor: "rgba(255,255,255,0.08)",
+                    borderRadius: "16px",
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-2">
+        <Card title="آخر النشاطات">
+          <div className="space-y-4">
+            {(stats?.recentActivity ?? []).map((item) => (
+              <div
+                key={`${item.entity_type}-${item.created_at}-${item.title}`}
+                className="rounded-3xl border border-white/10 bg-white/[0.03] p-4"
+              >
+                <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-sm font-bold">{act.label}</p>
-                    <p className="text-[10px] text-foreground/40 mt-1 uppercase tracking-widest">{act.time}</p>
+                    <p className="font-semibold text-white">{item.title}</p>
+                    <p className="mt-1 text-sm leading-7 text-slate-300">{item.description}</p>
                   </div>
+                  <StatusBadge label={item.entity_type} tone="info" />
                 </div>
-              ))}
-            </div>
-            <button className="w-full mt-6 py-3 rounded-xl border border-primary/20 text-primary text-sm font-bold hover:bg-primary/5 transition-all">
-               عرض كافة السجلات
-            </button>
-          </Card>
-        </div>
-      </div>
-    </motion.div>
+                <p className="mt-3 text-xs text-slate-500">{formatDate(item.created_at)}</p>
+              </div>
+            ))}
+
+            {!loading && (stats?.recentActivity.length ?? 0) === 0 ? (
+              <p className="text-sm text-slate-400">لا توجد نشاطات حديثة لعرضها.</p>
+            ) : null}
+          </div>
+        </Card>
+
+        <Card title="قائمة المراجعة السريعة">
+          <div className="space-y-4">
+            {(stats?.pendingApprovals ?? []).map((item) => (
+              <div
+                key={`${item.entity_type}-${item.id}`}
+                className="rounded-3xl border border-amber-400/10 bg-amber-500/5 p-4"
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-semibold text-white">{item.title}</p>
+                    <p className="mt-2 text-xs text-slate-400">{formatDate(item.created_at)}</p>
+                  </div>
+                  <StatusBadge label={item.entity_type} tone="warning" />
+                </div>
+              </div>
+            ))}
+
+            {!loading && (stats?.pendingApprovals.length ?? 0) === 0 ? (
+              <div className="rounded-3xl border border-emerald-400/15 bg-emerald-500/5 p-5 text-sm text-emerald-100">
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 size={18} />
+                  لا توجد عناصر معلقة حاليًا.
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </Card>
+      </section>
+    </div>
   );
 }
-
-function StatCard({ title, value, icon: Icon, trend, trendUp, delay, isLive }: any) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay }}
-    >
-      <Card className="group hover:-translate-y-1 transition-all duration-300">
-        <div className="flex justify-between items-start mb-6">
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-yellow-700/20 to-yellow-400/20 text-primary border border-primary/20 shadow-inner group-hover:scale-110 transition-transform">
-            <Icon size={24} />
-          </div>
-          <div className={cn(
-            'flex items-center gap-1 text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-tighter', 
-            isLive ? 'bg-rose-500/20 text-rose-500 animate-pulse border border-rose-500/30' : 
-            trendUp ? 'text-emerald-500 bg-emerald-500/10 border border-emerald-500/20' : 'text-red-500 bg-red-500/10 border border-red-500/20'
-          )}>
-            {trend}
-            {!isLive && (trendUp ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />)}
-          </div>
-        </div>
-        <div>
-          <p className="text-foreground/40 text-[10px] font-bold uppercase tracking-[0.2em] mb-1 spiritual-text">{title}</p>
-          <h4 className="text-4xl font-bold tracking-tight text-foreground gradient-text">{value}</h4>
-        </div>
-      </Card>
-    </motion.div>
-  );
-}
-

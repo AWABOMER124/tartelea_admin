@@ -1,185 +1,211 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { Card } from '@/components/Card';
-import { supabase } from '@/lib/supabase';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  LineChart,
+import { useEffect, useMemo, useState } from "react";
+import { Download, LoaderCircle } from "lucide-react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
   Line,
-  PieChart,
+  LineChart,
   Pie,
-  Cell
-} from 'recharts';
-import { 
-  TrendingUp, 
-  Users, 
-  Clock, 
-  Download, 
-  Calendar,
-  Filter
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useUI } from '@/context/UIContext';
-
-const COLORS = ['#ca8a04', '#eab308', '#facc15', '#a16207', '#854d0e'];
-
-const registrationData = [
-  { name: 'Jan', value: 400 },
-  { name: 'Feb', value: 300 },
-  { name: 'Mar', value: 600 },
-  { name: 'Apr', value: 800 },
-  { name: 'May', value: 500 },
-  { name: 'Jun', value: 900 },
-];
-
-const userTypeData = [
-  { name: 'Students', value: 850 },
-  { name: 'Trainers', value: 120 },
-  { name: 'Admins', value: 15 },
-];
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { toast } from "react-hot-toast";
+import { Card } from "@/components/Card";
+import { ConnectionNotice } from "@/components/ConnectionNotice";
+import { useAdminSession } from "@/hooks/useAdminSession";
+import { adminRequest, DashboardResponse, formatCompactNumber } from "@/lib/api";
 
 export default function ReportsPage() {
-  const { t, theme } = useUI();
-  const [loading, setLoading] = useState(true);
+  const session = useAdminSession();
+  const [stats, setStats] = useState<DashboardResponse | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setTimeout(() => setLoading(false), 800);
-  }, []);
+    if (!session.token) {
+      setStats(null);
+      return;
+    }
+
+    async function loadStats() {
+      try {
+        setLoading(true);
+        const response = await adminRequest<DashboardResponse>("/stats");
+        setStats(response);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "تعذر تحميل التقارير.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    void loadStats();
+  }, [session.token]);
+
+  const executiveCards = useMemo(
+    () =>
+      stats
+        ? [
+            { label: "مستخدمون موثقون", value: stats.overview.verifiedUsers },
+            { label: "ورش معروضة", value: stats.overview.totalWorkshops },
+            { label: "محتوى منشور", value: stats.overview.totalContents },
+          ]
+        : [],
+    [stats],
+  );
+
+  if (!session.isAuthenticated) {
+    return <ConnectionNotice />;
+  }
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-between items-end">
+      <section className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-foreground mb-2">{t('reports')}</h2>
-          <p className="text-foreground/50">Detailed platform analytics, user growth, and engagement metrics.</p>
+          <h2 className="text-3xl font-black text-white">التقارير والتحليلات</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-300">
+            قراءة سريعة لمؤشرات المنصة من نفس بيانات لوحة الإدارة، بدون أي طبقة بيانات منفصلة أو
+            استدعاءات مباشرة من الواجهة إلى قاعدة البيانات.
+        </p>
         </div>
-        <div className="flex gap-4">
-          <button className="bg-foreground/5 border border-border p-2.5 rounded-xl hover:bg-foreground/10 transition-colors">
-            <Filter size={20} className="text-primary" />
-          </button>
-          <button className="bg-primary hover:bg-primary/80 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20">
-            <Download size={20} />
-            <span>تصدير التقرير</span>
-          </button>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <StatItem title="نمو المستخدمين" value="+24%" subValue="آخر 30 يوم" icon={Users} color="gold" />
-        <StatItem title="وقت الاستماع" value="1,240h" subValue="+12% زيادة" icon={Clock} color="gold" />
-        <StatItem title="المحتوى النشط" value={85} subValue="تمت إضافة 5 اليوم" icon={TrendingUp} color="gold" />
-        <StatItem title="معدل الاحتفاظ" value="78%" subValue="مستقر" icon={TrendingUp} color="gold" />
-      </div>
+        <button className="inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-slate-100 transition hover:bg-white/10">
+          <Download size={16} />
+          تصدير يدوي قريبًا
+        </button>
+      </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Card title="إحصائيات التسجيل الشهري" className="border-border bg-card">
-          <div className="h-80 w-full mt-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={registrationData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(202, 138, 4, 0.1)" vertical={false} />
-                <XAxis dataKey="name" stroke="currentColor" fontSize={12} tickLine={false} axisLine={false} className="text-foreground/40" />
-                <YAxis stroke="currentColor" fontSize={12} tickLine={false} axisLine={false} className="text-foreground/40" />
-                <Tooltip 
-                   contentStyle={{ 
-                    backgroundColor: theme === 'dark' ? '#0a0a0a' : '#fff', 
-                    border: '1px solid var(--border)', 
-                    borderRadius: '12px' 
-                  }}
-                  itemStyle={{ color: 'var(--primary)' }}
-                />
-                <Bar dataKey="value" fill="#ca8a04" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+      <section className="grid gap-4 md:grid-cols-3">
+        {executiveCards.map((card) => (
+          <Card key={card.label}>
+            <p className="text-sm text-slate-400">{card.label}</p>
+            <p className="mt-3 text-4xl font-black text-white">{formatCompactNumber(card.value)}</p>
+          </Card>
+        ))}
+      </section>
+
+      {loading && !stats ? (
+        <Card>
+          <div className="flex items-center justify-center gap-3 py-12 text-sm text-slate-400">
+            <LoaderCircle size={16} className="animate-spin" />
+            جارٍ تحميل لوحة التحليلات...
           </div>
         </Card>
+      ) : null}
 
-        <div className="grid grid-cols-1 gap-8">
-          <Card title="توزيع المستخدمين" className="border-border bg-card">
-            <div className="h-64 w-full flex items-center">
+      {stats ? (
+        <div className="grid gap-6 xl:grid-cols-2">
+          <Card title="تطور التسجيلات اليومية">
+            <div className="h-80 pt-4">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={userTypeData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={8}
-                    dataKey="value"
-                  >
-                    {userTypeData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="transparent" />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                     contentStyle={{ 
-                      backgroundColor: theme === 'dark' ? '#0a0a0a' : '#fff', 
-                      border: '1px solid var(--border)', 
-                      borderRadius: '12px' 
+                <BarChart data={stats.trends.dailySignups}>
+                  <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
+                  <XAxis dataKey="label" stroke="rgba(203,213,225,0.7)" tickLine={false} axisLine={false} />
+                  <YAxis stroke="rgba(203,213,225,0.7)" tickLine={false} axisLine={false} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#07131c",
+                      borderColor: "rgba(255,255,255,0.08)",
+                      borderRadius: "16px",
                     }}
-                    itemStyle={{ color: 'var(--primary)' }}
                   />
-                </PieChart>
+                  <Legend />
+                  <Bar dataKey="total" name="تسجيلات" radius={[12, 12, 0, 0]} fill="#38bdf8" />
+                </BarChart>
               </ResponsiveContainer>
-              <div className="w-1/2 space-y-4">
-                {userTypeData.map((item, i) => (
-                  <div key={item.name} className="flex items-center justify-between px-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[i] }} />
-                      <span className="text-xs font-bold text-foreground/60 uppercase">{item.name}</span>
-                    </div>
-                    <span className="text-sm font-bold">{item.value}</span>
-                  </div>
-                ))}
-              </div>
             </div>
           </Card>
 
-          <Card title="معدل التفاعل خلال الأسبوع" className="border-border bg-card">
-            <div className="h-44 w-full">
-               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={registrationData}>
-                  <Line type="monotone" dataKey="value" stroke="#ca8a04" strokeWidth={3} dot={false} />
-                  <Tooltip 
-                     contentStyle={{ 
-                      backgroundColor: theme === 'dark' ? '#0a0a0a' : '#fff', 
-                      border: '1px solid var(--border)', 
-                      borderRadius: '12px' 
+          <Card title="توزيع المحتوى حسب النوع">
+            <div className="h-80 pt-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={stats.trends.contentDistribution}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={65}
+                    outerRadius={110}
+                    paddingAngle={5}
+                  >
+                    {stats.trends.contentDistribution.map((entry, index) => (
+                      <Cell
+                        key={`${entry.name}-${index}`}
+                        fill={["#38bdf8", "#10b981", "#f59e0b"][index % 3]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#07131c",
+                      borderColor: "rgba(255,255,255,0.08)",
+                      borderRadius: "16px",
                     }}
-                    itemStyle={{ color: 'var(--primary)' }}
                   />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+
+          <Card title="مؤشر الإنتاجية الإدارية">
+            <div className="h-80 pt-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={[
+                    { label: "محتوى", value: stats.overview.totalContents },
+                    { label: "ورش", value: stats.overview.totalWorkshops },
+                    { label: "غرف", value: stats.overview.totalRooms },
+                    { label: "دورات", value: stats.overview.totalCourses },
+                    { label: "مثبتات", value: stats.overview.totalPinned },
+                  ]}
+                >
+                  <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
+                  <XAxis dataKey="label" stroke="rgba(203,213,225,0.7)" tickLine={false} axisLine={false} />
+                  <YAxis stroke="rgba(203,213,225,0.7)" tickLine={false} axisLine={false} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#07131c",
+                      borderColor: "rgba(255,255,255,0.08)",
+                      borderRadius: "16px",
+                    }}
+                  />
+                  <Line type="monotone" dataKey="value" stroke="#f59e0b" strokeWidth={3} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           </Card>
-        </div>
-      </div>
-    </div>
-  );
-}
 
-function StatItem({ title, value, subValue, icon: Icon, color }: any) {
-  return (
-    <Card className="p-6 border-border bg-card shadow-sm group">
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 group-hover:scale-110 transition-transform shadow-sm">
-          <Icon size={24} />
+          <Card title="حجم المراجعات المعلقة">
+            <div className="space-y-4 pt-3">
+              {stats.pendingApprovals.map((item) => (
+                <div
+                  key={`${item.entity_type}-${item.id}`}
+                  className="rounded-3xl border border-white/10 bg-white/[0.03] p-4"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="font-semibold text-white">{item.title}</p>
+                      <p className="mt-2 text-xs text-slate-500">{item.entity_type}</p>
+                    </div>
+                    <p className="text-sm font-semibold text-amber-200">معلّق</p>
+                  </div>
+                </div>
+              ))}
+
+              {stats.pendingApprovals.length === 0 ? (
+                <p className="text-sm text-slate-400">لا توجد عناصر قيد الانتظار.</p>
+              ) : null}
+            </div>
+          </Card>
         </div>
-        <div>
-          <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">{title}</p>
-          <div className="flex items-baseline gap-2">
-            <h4 className="text-2xl font-black text-foreground">{value}</h4>
-            <span className="text-[10px] font-bold text-emerald-500">{subValue}</span>
-          </div>
-        </div>
-      </div>
-    </Card>
+      ) : null}
+    </div>
   );
 }
