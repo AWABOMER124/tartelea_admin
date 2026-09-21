@@ -333,7 +333,7 @@ export default function ContentPage() {
 
             <button
               onClick={handleSaveContent}
-              disabled={saving}
+              disabled={saving || session.user?.role !== "admin"}
               className="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-cyan-500 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {saving ? <LoaderCircle size={18} className="animate-spin" /> : <Plus size={18} />}
@@ -448,6 +448,7 @@ export default function ContentPage() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleEditContent(item)}
+                        disabled={session.user?.role !== "admin"}
                         className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-3 text-cyan-100 transition hover:bg-cyan-500/20"
                       >
                         <PencilLine size={16} />
@@ -455,6 +456,7 @@ export default function ContentPage() {
 
                       <button
                         onClick={() => handleDeleteContent(item.id)}
+                        disabled={session.user?.role !== "admin"}
                         className="rounded-2xl border border-rose-400/20 bg-rose-500/10 p-3 text-rose-200 transition hover:bg-rose-500/20"
                       >
                         <Trash2 size={16} />
