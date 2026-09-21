@@ -142,7 +142,7 @@ export default function RoomsPage() {
 
                     <div className="flex gap-3">
                       <button
-                        disabled={updatingId === room.id}
+                        disabled={updatingId === room.id || session.user?.role !== "admin"}
                         onClick={() => updateApproval(room.id, true)}
                         className="inline-flex items-center gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-500/20 disabled:opacity-60"
                       >
@@ -150,7 +150,7 @@ export default function RoomsPage() {
                         اعتماد
                       </button>
                       <button
-                        disabled={updatingId === room.id}
+                        disabled={updatingId === room.id || session.user?.role !== "admin"}
                         onClick={() => updateApproval(room.id, false)}
                         className="inline-flex items-center gap-2 rounded-2xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-100 transition hover:bg-rose-500/20 disabled:opacity-60"
                       >
