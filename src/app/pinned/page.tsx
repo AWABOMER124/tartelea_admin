@@ -118,6 +118,12 @@ export default function PinnedPage() {
   }
 
   async function handleDeletePinned(id: string) {
+    const target = items.find((item) => item.id === id);
+    const confirmed = window.confirm(
+      `حذف العنصر المثبت "${target?.title || "بدون عنوان"}"؟ لا يمكن التراجع عن هذا الإجراء.`,
+    );
+    if (!confirmed) return;
+
     try {
       await adminRequest(`/pinned/${id}`, { method: "DELETE" });
       setItems((current) => current.filter((item) => item.id !== id));
