@@ -16,6 +16,7 @@ import {
   Waypoints,
 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
+import { useAdminSession } from "@/hooks/useAdminSession";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "الرئيسية", href: "/" },
@@ -27,12 +28,14 @@ const menuItems = [
   { icon: Radio, label: "الغرف", href: "/rooms" },
   { icon: Pin, label: "المثبتات", href: "/pinned" },
   { icon: Bell, label: "الإشعارات", href: "/notifications" },
-  { icon: FileSearch, label: "سجل التدقيق", href: "/audit" },
+  { icon: FileSearch, label: "سجل التدقيق", href: "/audit", adminOnly: true },
   { icon: Waypoints, label: "التقارير", href: "/reports" },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { session } = useAdminSession();
+  const visibleMenuItems = menuItems.filter((item) => !item.adminOnly || session.user?.role === "admin");
 
   return (
     <aside className="fixed right-0 top-20 z-40 h-[calc(100vh-5rem)] w-72 border-l border-white/10 bg-slate-950/70 p-5 backdrop-blur-xl">
@@ -41,7 +44,7 @@ export function Sidebar() {
       </div>
 
       <nav className="space-y-2">
-        {menuItems.map((item) => {
+        {visibleMenuItems.map((item) => {
           const isActive = pathname === item.href;
 
           return (
