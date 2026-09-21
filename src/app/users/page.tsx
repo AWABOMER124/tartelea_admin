@@ -181,7 +181,7 @@ export default function UsersPage() {
                     <td className="px-4 py-5">
                       <select
                         value={user.role}
-                        disabled={updatingId === user.id}
+                        disabled={updatingId === user.id || session.user?.role !== "admin"}
                         onChange={(event) => handleRoleChange(user.id, event.target.value as AdminRole)}
                         className="w-40 rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
                       >
