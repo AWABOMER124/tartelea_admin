@@ -65,6 +65,13 @@ export default function UsersPage() {
   }, [users]);
 
   async function handleRoleChange(userId: string, role: AdminRole) {
+    const target = users.find((user) => user.id === userId);
+    const nextRoleLabel = roleOptions.find((option) => option.value === role)?.label || role;
+    const confirmed = window.confirm(
+      `تأكيد تغيير دور ${target?.full_name || target?.email || "المستخدم"} إلى "${nextRoleLabel}"؟`,
+    );
+    if (!confirmed) return;
+
     try {
       setUpdatingId(userId);
       const response = await adminRequest<{ user: AdminUser }>(`/users/${userId}/role`, {
