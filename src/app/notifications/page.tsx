@@ -90,6 +90,7 @@ export default function NotificationsPage() {
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[1fr_1.3fr]">
+        {session.user?.role === "admin" ? (
         <Card title="إرسال إشعار جديد">
           <div className="space-y-4">
             <label className="block text-sm text-slate-300">
@@ -154,6 +155,7 @@ export default function NotificationsPage() {
             </button>
           </div>
         </Card>
+        ) : null}
 
         <Card title="السجل الأخير">
           <div className="space-y-4">
