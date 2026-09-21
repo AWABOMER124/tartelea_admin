@@ -87,12 +87,14 @@ export default function PostsPage() {
                     </div>
                   </div>
 
+                  {session.user?.role === "admin" ? (
                   <button
                     onClick={() => handleDelete(post.id)}
                     className="rounded-2xl border border-rose-400/20 bg-rose-500/10 p-3 text-rose-200 transition hover:bg-rose-500/20"
                   >
                     <Trash2 size={16} />
                   </button>
+                  ) : null}
                 </div>
               </div>
             ))
