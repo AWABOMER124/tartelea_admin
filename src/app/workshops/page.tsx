@@ -8,6 +8,20 @@ import { ConnectionNotice } from "@/components/ConnectionNotice";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useAdminSession } from "@/hooks/useAdminSession";
 import { adminRequest, AdminWorkshop, formatDate } from "@/lib/api";
+import { EntityEditDialog, type EditorValue } from "@/components/EntityEditDialog";
+
+const workshopFields = [
+  { key: "title", label: "عنوان الورشة", required: true },
+  { key: "description", label: "الوصف الكامل", type: "textarea" as const },
+  { key: "category", label: "التصنيف" },
+  { key: "scheduled_at", label: "موعد الورشة", type: "datetime-local" as const },
+  { key: "duration_minutes", label: "المدة بالدقائق", type: "number" as const, min: 1 },
+  { key: "price", label: "السعر", type: "number" as const, min: 0 },
+  { key: "max_participants", label: "الحد الأقصى للمشاركين", type: "number" as const, min: 1 },
+  { key: "image_url", label: "رابط صورة الورشة", type: "url" as const },
+];
+
+const localDateTime = (value?: string | null) => value ? new Date(value).toISOString().slice(0, 16) : "";
 
 export default function WorkshopsPage() {
   const session = useAdminSession();
@@ -55,6 +69,17 @@ export default function WorkshopsPage() {
       toast.error(error instanceof Error ? error.message : "تعذر تحديث الاعتماد.");
     } finally {
       setUpdatingId(null);
+    }
+  }
+
+  async function updateWorkshop(workshopId: string, values: Record<string, EditorValue>) {
+    try {
+      const response = await adminRequest<{ workshop: AdminWorkshop }>(`/workshops/${workshopId}`, { method: "PUT", body: values });
+      setWorkshops((current) => current.map((item) => item.id === workshopId ? { ...item, ...response.workshop } : item));
+      toast.success("تم تحديث كل بيانات الورشة الظاهرة للمستخدم.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "تعذر تحديث الورشة.");
+      throw error;
     }
   }
 
@@ -113,6 +138,17 @@ export default function WorkshopsPage() {
                   </div>
 
                   <div className="flex gap-3">
+                    <EntityEditDialog
+                      title={workshop.title}
+                      disabled={session.user?.role !== "admin"}
+                      fields={workshopFields}
+                      values={{
+                        title: workshop.title, description: workshop.description || "", category: workshop.category || "general",
+                        scheduled_at: localDateTime(workshop.scheduled_at), duration_minutes: workshop.duration_minutes ?? 60,
+                        price: workshop.price ?? 0, max_participants: workshop.max_participants ?? 100, image_url: workshop.image_url || "",
+                      }}
+                      onSave={(values) => updateWorkshop(workshop.id, values)}
+                    />
                     <button
                       disabled={updatingId === workshop.id || session.user?.role !== "admin"}
                       onClick={() => updateApproval(workshop.id, true)}

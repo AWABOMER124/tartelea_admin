@@ -17,16 +17,23 @@ const typeOptions = [
 
 const categoryOptions = [
   { value: "general", label: "عام" },
+  { value: "quran", label: "القرآن" },
+  { value: "values", label: "القيم" },
+  { value: "community", label: "المجتمع" },
   { value: "tahliya", label: "تحلية" },
   { value: "takhliya", label: "تخلية" },
   { value: "tajalli", label: "تجلّي" },
   { value: "psychological", label: "نفسي" },
   { value: "sudan", label: "السودان" },
+  { value: "sudan_awareness", label: "الوعي السوداني" },
+  { value: "arab_awareness", label: "الوعي العربي" },
+  { value: "islamic_awareness", label: "الوعي الإسلامي" },
 ];
 
 type ContentFormState = {
   title: string;
   description: string;
+  content: string;
   type: string;
   category: string;
   media_url: string;
@@ -45,6 +52,7 @@ function createInitialForm(): ContentFormState {
   return {
     title: "",
     description: "",
+    content: "",
     type: "video",
     category: "general",
     media_url: "",
@@ -58,6 +66,7 @@ function mapContentToForm(content: AdminContent): ContentFormState {
   return {
     title: content.title || "",
     description: content.description || "",
+    content: content.content || "",
     type: content.type || "video",
     category: content.category || "general",
     media_url: content.media_url || "",
@@ -241,6 +250,16 @@ export default function ContentPage() {
                   setForm((current) => ({ ...current, description: event.target.value }))
                 }
                 className="mt-2 h-28 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+              />
+            </label>
+
+            <label className="block text-sm text-slate-300">
+              النص الكامل الذي سيظهر للمستخدم
+              <textarea
+                value={form.content}
+                onChange={(event) => setForm((current) => ({ ...current, content: event.target.value }))}
+                className="mt-2 h-56 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm leading-7 outline-none focus:border-cyan-400/30"
+                placeholder="اكتب نص المقال أو المادة كاملاً..."
               />
             </label>
 
@@ -438,6 +457,7 @@ export default function ContentPage() {
                         <p className="mt-2 text-sm leading-7 text-slate-300">
                           {item.description || "بدون وصف تفصيلي."}
                         </p>
+                        {item.content ? <p className="mt-2 line-clamp-3 text-xs leading-6 text-slate-400">{item.content}</p> : null}
                       </div>
                       <div className="flex flex-wrap gap-4 text-xs text-slate-500">
                         <span>التاريخ: {formatDate(item.created_at)}</span>
