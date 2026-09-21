@@ -13,14 +13,14 @@ const roleOptions: { value: AdminRole; label: string }[] = [
   { value: "admin", label: "مدير" },
   { value: "moderator", label: "مشرف" },
   { value: "trainer", label: "مدرب" },
-  { value: "student", label: "طالب" },
+  { value: "member", label: "طالب" },
 ];
 
 const roleTone: Record<AdminRole, "danger" | "warning" | "info" | "neutral"> = {
   admin: "danger",
   moderator: "warning",
   trainer: "info",
-  student: "neutral",
+  member: "neutral",
 };
 
 export default function UsersPage() {
@@ -60,7 +60,7 @@ export default function UsersPage() {
         accumulator[user.role] += 1;
         return accumulator;
       },
-      { admin: 0, moderator: 0, trainer: 0, student: 0 },
+      { admin: 0, moderator: 0, trainer: 0, member: 0 },
     );
   }, [users]);
 
@@ -98,7 +98,7 @@ export default function UsersPage() {
           <h2 className="text-3xl font-black text-white">إدارة المستخدمين والصلاحيات</h2>
           <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-300">
             يتم تحديث الدور الأساسي مباشرة داخل الـ Backend، مع دعم موحد للأدوار: مدير، مشرف،
-            مدرب، وطالب.
+            مدرب، وعضو.
           </p>
         </div>
 

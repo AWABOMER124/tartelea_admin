@@ -35,7 +35,7 @@ export default function AuditPage() {
     void loadAuditLogs();
   }, [session.token]);
 
-  if (!session.isAuthenticated) {
+  if (!session.isAuthenticated || session.user?.role !== "admin") {
     return <ConnectionNotice />;
   }
 
