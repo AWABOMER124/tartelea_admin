@@ -150,7 +150,6 @@ export default function PinnedPage() {
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[1fr_1.3fr]">
-        {session.user?.role === "admin" ? (
         <Card title={editingId ? "تعديل عنصر مثبت" : "إضافة عنصر مثبت"}>
           <div className="space-y-4">
             {editingId ? (
@@ -291,7 +290,6 @@ export default function PinnedPage() {
                       </div>
                     </div>
 
-                    {session.user?.role === "admin" ? (
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleEditPinned(item)}
