@@ -84,8 +84,7 @@ export default function RoomsPage() {
                 >
                   <div className="flex items-center justify-between gap-4">
                     <div className="space-y-2">
-                      {session.user?.role === "admin" ? (
-                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2">
                         <Radio size={18} className="text-rose-300" />
                         <p className="font-semibold text-white">{room.title}</p>
                       </div>
