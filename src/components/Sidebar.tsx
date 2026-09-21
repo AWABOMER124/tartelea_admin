@@ -34,8 +34,8 @@ const menuItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { session } = useAdminSession();
-  const visibleMenuItems = menuItems.filter((item) => !item.adminOnly || session.user?.role === "admin");
+  const { user } = useAdminSession();
+  const visibleMenuItems = menuItems.filter((item) => !item.adminOnly || user?.role === "admin");
 
   return (
     <aside className="fixed right-0 top-20 z-40 h-[calc(100vh-5rem)] w-72 border-l border-white/10 bg-slate-950/70 p-5 backdrop-blur-xl">
