@@ -106,7 +106,7 @@ export default function CoursesPage() {
 
                   <div className="flex gap-3">
                     <button
-                      disabled={updatingId === course.id}
+                      disabled={updatingId === course.id || session.user?.role !== "admin"}
                       onClick={() => updateApproval(course.id, true)}
                       className="inline-flex items-center gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-500/20 disabled:opacity-60"
                     >
@@ -114,7 +114,7 @@ export default function CoursesPage() {
                       اعتماد
                     </button>
                     <button
-                      disabled={updatingId === course.id}
+                      disabled={updatingId === course.id || session.user?.role !== "admin"}
                       onClick={() => updateApproval(course.id, false)}
                       className="inline-flex items-center gap-2 rounded-2xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-100 transition hover:bg-rose-500/20 disabled:opacity-60"
                     >
