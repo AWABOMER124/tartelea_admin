@@ -231,8 +231,8 @@ export function readSession(): AdminSession {
   }
 
   const baseUrl = getPreferredBaseUrl(window.localStorage.getItem(STORAGE_KEYS.baseUrl));
-  const token = window.localStorage.getItem(STORAGE_KEYS.token);
-  const rawUser = window.localStorage.getItem(STORAGE_KEYS.user);
+  const token = window.sessionStorage.getItem(STORAGE_KEYS.token);
+  const rawUser = window.sessionStorage.getItem(STORAGE_KEYS.user);
 
   let user: SessionUser | null = null;
   if (rawUser) {
@@ -260,15 +260,15 @@ export function saveSession(session: AdminSession) {
   window.localStorage.setItem(STORAGE_KEYS.baseUrl, normalizeBaseUrl(session.baseUrl));
 
   if (session.token) {
-    window.localStorage.setItem(STORAGE_KEYS.token, session.token);
+    window.sessionStorage.setItem(STORAGE_KEYS.token, session.token);
   } else {
-    window.localStorage.removeItem(STORAGE_KEYS.token);
+    window.sessionStorage.removeItem(STORAGE_KEYS.token);
   }
 
   if (session.user) {
-    window.localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(session.user));
+    window.sessionStorage.setItem(STORAGE_KEYS.user, JSON.stringify(session.user));
   } else {
-    window.localStorage.removeItem(STORAGE_KEYS.user);
+    window.sessionStorage.removeItem(STORAGE_KEYS.user);
   }
 
   emitSessionChange();
@@ -279,8 +279,8 @@ export function clearSession() {
     return;
   }
 
-  window.localStorage.removeItem(STORAGE_KEYS.token);
-  window.localStorage.removeItem(STORAGE_KEYS.user);
+  window.sessionStorage.removeItem(STORAGE_KEYS.token);
+  window.sessionStorage.removeItem(STORAGE_KEYS.user);
   emitSessionChange();
 }
 
