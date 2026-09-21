@@ -8,6 +8,12 @@ import { ConnectionNotice } from "@/components/ConnectionNotice";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useAdminSession } from "@/hooks/useAdminSession";
 import { adminRequest, AdminPost, formatDate } from "@/lib/api";
+import { EntityEditDialog, type EditorValue } from "@/components/EntityEditDialog";
+
+const postFields = [
+  { key: "title", label: "عنوان المنشور" },
+  { key: "body", label: "نص المنشور الكامل", type: "textarea" as const, required: true },
+];
 
 export default function PostsPage() {
   const session = useAdminSession();
@@ -42,6 +48,17 @@ export default function PostsPage() {
       toast.success("تم حذف المنشور.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "تعذر حذف المنشور.");
+    }
+  }
+
+  async function updatePost(postId: string, values: Record<string, EditorValue>) {
+    try {
+      const response = await adminRequest<{ post: AdminPost }>(`/posts/${postId}`, { method: "PUT", body: values });
+      setPosts((current) => current.map((post) => post.id === postId ? { ...post, ...response.post } : post));
+      toast.success("تم تحديث نص المنشور كما سيظهر للمستخدم.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "تعذر تحديث المنشور.");
+      throw error;
     }
   }
 
@@ -88,12 +105,21 @@ export default function PostsPage() {
                   </div>
 
                   {session.user?.role === "admin" ? (
-                  <button
-                    onClick={() => handleDelete(post.id)}
-                    className="rounded-2xl border border-rose-400/20 bg-rose-500/10 p-3 text-rose-200 transition hover:bg-rose-500/20"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                    <div className="flex items-center gap-2">
+                      <EntityEditDialog
+                        title={post.title || "المنشور"}
+                        fields={postFields}
+                        values={{ title: post.title || "", body: post.body || "" }}
+                        onSave={(values) => updatePost(post.id, values)}
+                      />
+                      <button
+                        onClick={() => handleDelete(post.id)}
+                        className="rounded-2xl border border-rose-400/20 bg-rose-500/10 p-3 text-rose-200 transition hover:bg-rose-500/20"
+                        aria-label="حذف المنشور"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   ) : null}
                 </div>
               </div>

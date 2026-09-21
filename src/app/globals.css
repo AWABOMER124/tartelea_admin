@@ -19,6 +19,8 @@
 
 html {
   scroll-behavior: smooth;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -93,4 +95,12 @@ table {
 th,
 td {
   vertical-align: top;
+}
+
+.mobile-admin-nav {
+  scrollbar-width: none;
+}
+
+.mobile-admin-nav::-webkit-scrollbar {
+  display: none;
 }

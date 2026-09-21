@@ -31,35 +31,35 @@ export function Header() {
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-slate-950/85 px-6 backdrop-blur-xl">
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-slate-950/85 px-3 backdrop-blur-xl sm:px-6">
         <div className="mx-auto flex h-20 max-w-[1600px] items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-3 text-cyan-200">
+            <div className="hidden rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-3 text-cyan-200 sm:block">
               <Shield size={22} />
             </div>
             <div className="space-y-1">
-              <h1 className="text-2xl font-black tracking-tight text-white">بوابة إدارة ترتيلة</h1>
-              <p className="text-sm text-slate-300">لوحة موحدة لإدارة المنصة عبر الـ Backend API</p>
+              <h1 className="text-base font-black tracking-tight text-white sm:text-2xl">بوابة إدارة ترتيلة</h1>
+              <p className="hidden text-sm text-slate-300 md:block">لوحة مستقلة لإدارة المنصة</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             <button
               onClick={() => setDialogOpen(true)}
-              className="inline-flex items-center gap-2 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 px-4 py-3 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-500/20"
+              className="inline-flex items-center gap-2 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 px-3 py-3 text-xs font-semibold text-cyan-100 transition hover:bg-cyan-500/20 sm:px-4 sm:text-sm"
             >
               <PlugZap size={16} />
-              {session.isAuthenticated ? "إدارة الاتصال" : "تسجيل الدخول"}
+              <span className="hidden sm:inline">{session.isAuthenticated ? "إدارة الاتصال" : "تسجيل الدخول"}</span>
             </button>
 
-            <button className="relative rounded-2xl border border-white/10 bg-white/5 p-3 text-slate-200 transition hover:bg-white/10">
+            <button className="relative hidden rounded-2xl border border-white/10 bg-white/5 p-3 text-slate-200 transition hover:bg-white/10 md:block">
               <Bell size={18} />
               <span className="absolute -left-1 -top-1 h-5 min-w-5 rounded-full bg-amber-400 px-1 text-center text-[10px] font-bold leading-5 text-slate-950">
                 0
               </span>
             </button>
 
-            <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
+            <div className="hidden items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 sm:flex">
               <div className="hidden text-right sm:block">
                 <p className="text-sm font-semibold text-white">{userLabel}</p>
                 <p className="text-xs text-slate-400">
@@ -74,7 +74,7 @@ export function Header() {
             {session.isAuthenticated ? (
               <button
                 onClick={handleLogout}
-                className="inline-flex items-center gap-2 rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:bg-white/5"
+                className="hidden items-center gap-2 rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:bg-white/5 lg:inline-flex"
               >
                 <LogOut size={16} />
                 خروج

@@ -108,6 +108,9 @@ export interface AdminCourse {
   category?: string | null;
   thumbnail_url?: string | null;
   media_url?: string | null;
+  url?: string | null;
+  type?: string | null;
+  depth_level?: string | number | null;
   price?: number | null;
   is_approved: boolean;
   trainer_name?: string | null;
@@ -122,6 +125,11 @@ export interface AdminWorkshop {
   scheduled_at?: string | null;
   is_approved: boolean;
   is_live?: boolean;
+  category?: string | null;
+  image_url?: string | null;
+  duration_minutes?: number | null;
+  price?: number | null;
+  max_participants?: number | null;
   created_at: string;
 }
 
@@ -136,6 +144,11 @@ export interface AdminRoom {
   max_participants?: number;
   status?: string | null;
   scheduled_at?: string | null;
+  category?: string | null;
+  image_url?: string | null;
+  duration_minutes?: number | null;
+  price?: number | null;
+  access_type?: string | null;
   created_at: string;
 }
 

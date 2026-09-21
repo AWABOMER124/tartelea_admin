@@ -8,6 +8,23 @@ import { ConnectionNotice } from "@/components/ConnectionNotice";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useAdminSession } from "@/hooks/useAdminSession";
 import { adminRequest, AdminCourse, formatDate } from "@/lib/api";
+import { EntityEditDialog, type EditorValue } from "@/components/EntityEditDialog";
+
+const courseFields = [
+  { key: "title", label: "عنوان الدورة", required: true },
+  { key: "description", label: "الوصف الكامل", type: "textarea" as const },
+  { key: "category", label: "التصنيف" },
+  { key: "type", label: "نوع المادة", type: "select" as const, options: [
+    { value: "video", label: "فيديو" }, { value: "audio", label: "صوتي" }, { value: "article", label: "مقال" },
+  ] },
+  { key: "depth_level", label: "مرحلة الرحلة", type: "select" as const, options: [
+    { value: "beginner", label: "تخلية" }, { value: "intermediate", label: "تحلية" }, { value: "advanced", label: "تجلّي" },
+  ] },
+  { key: "price", label: "السعر", type: "number" as const, min: 0 },
+  { key: "thumbnail_url", label: "رابط صورة الغلاف", type: "url" as const },
+  { key: "media_url", label: "رابط الوسيط", type: "url" as const },
+  { key: "url", label: "الرابط الخارجي", type: "url" as const },
+];
 
 export default function CoursesPage() {
   const session = useAdminSession();
@@ -49,6 +66,17 @@ export default function CoursesPage() {
       toast.error(error instanceof Error ? error.message : "تعذر تحديث الاعتماد.");
     } finally {
       setUpdatingId(null);
+    }
+  }
+
+  async function updateCourse(courseId: string, values: Record<string, EditorValue>) {
+    try {
+      const response = await adminRequest<{ course: AdminCourse }>(`/courses/${courseId}`, { method: "PUT", body: values });
+      setCourses((current) => current.map((course) => course.id === courseId ? { ...course, ...response.course } : course));
+      toast.success("تم تحديث كل بيانات الدورة الظاهرة للمستخدم.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "تعذر تحديث الدورة.");
+      throw error;
     }
   }
 
@@ -105,6 +133,17 @@ export default function CoursesPage() {
                   </div>
 
                   <div className="flex gap-3">
+                    <EntityEditDialog
+                      title={course.title}
+                      disabled={session.user?.role !== "admin"}
+                      fields={courseFields}
+                      values={{
+                        title: course.title, description: course.description || "", category: course.category || "general",
+                        type: course.type || "video", depth_level: course.depth_level || "beginner", price: course.price ?? 0,
+                        thumbnail_url: course.thumbnail_url || "", media_url: course.media_url || "", url: course.url || "",
+                      }}
+                      onSave={(values) => updateCourse(course.id, values)}
+                    />
                     <button
                       disabled={updatingId === course.id || session.user?.role !== "admin"}
                       onClick={() => updateApproval(course.id, true)}

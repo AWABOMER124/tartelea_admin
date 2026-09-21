@@ -8,6 +8,23 @@ import { ConnectionNotice } from "@/components/ConnectionNotice";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useAdminSession } from "@/hooks/useAdminSession";
 import { adminRequest, AdminRoom, formatDate } from "@/lib/api";
+import { EntityEditDialog, type EditorValue } from "@/components/EntityEditDialog";
+
+const roomFields = [
+  { key: "title", label: "عنوان الغرفة", required: true },
+  { key: "description", label: "الوصف الكامل", type: "textarea" as const },
+  { key: "category", label: "التصنيف" },
+  { key: "scheduled_at", label: "موعد الغرفة", type: "datetime-local" as const },
+  { key: "duration_minutes", label: "المدة بالدقائق", type: "number" as const, min: 1 },
+  { key: "price", label: "السعر", type: "number" as const, min: 0 },
+  { key: "max_participants", label: "الحد الأقصى للمشاركين", type: "number" as const, min: 1 },
+  { key: "access_type", label: "نوع الوصول", type: "select" as const, options: [
+    { value: "public", label: "عام" }, { value: "authenticated", label: "للمسجلين" }, { value: "paid", label: "مدفوع" },
+  ] },
+  { key: "image_url", label: "رابط صورة الغرفة", type: "url" as const },
+];
+
+const localDateTime = (value?: string | null) => value ? new Date(value).toISOString().slice(0, 16) : "";
 
 export default function RoomsPage() {
   const session = useAdminSession();
@@ -53,6 +70,17 @@ export default function RoomsPage() {
       toast.error(error instanceof Error ? error.message : "تعذر تحديث الاعتماد.");
     } finally {
       setUpdatingId(null);
+    }
+  }
+
+  async function updateRoom(roomId: string, values: Record<string, EditorValue>) {
+    try {
+      const response = await adminRequest<{ room: AdminRoom }>(`/rooms/${roomId}`, { method: "PUT", body: values });
+      setRooms((current) => current.map((item) => item.id === roomId ? { ...item, ...response.room } : item));
+      toast.success("تم تحديث كل بيانات الغرفة الظاهرة للمستخدم.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "تعذر تحديث الغرفة.");
+      throw error;
     }
   }
 
@@ -141,6 +169,18 @@ export default function RoomsPage() {
                     </div>
 
                     <div className="flex gap-3">
+                      <EntityEditDialog
+                        title={room.title}
+                        disabled={session.user?.role !== "admin"}
+                        fields={roomFields}
+                        values={{
+                          title: room.title, description: room.description || "", category: room.category || "general",
+                          scheduled_at: localDateTime(room.scheduled_at), duration_minutes: room.duration_minutes ?? 30,
+                          price: room.price ?? 0, max_participants: room.max_participants ?? 50,
+                          access_type: room.access_type || "public", image_url: room.image_url || "",
+                        }}
+                        onSave={(values) => updateRoom(room.id, values)}
+                      />
                       <button
                         disabled={updatingId === room.id || session.user?.role !== "admin"}
                         onClick={() => updateApproval(room.id, true)}
