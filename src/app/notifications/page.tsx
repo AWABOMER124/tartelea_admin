@@ -14,7 +14,7 @@ const audienceOptions = [
   { value: "admin", label: "المديرون" },
   { value: "moderator", label: "المشرفون" },
   { value: "trainer", label: "المدربون" },
-  { value: "student", label: "الطلاب" },
+  { value: "member", label: "الأعضاء" },
 ];
 
 export default function NotificationsPage() {
