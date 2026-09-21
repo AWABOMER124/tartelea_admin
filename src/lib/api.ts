@@ -308,7 +308,7 @@ async function parseResponse<T>(response: Response): Promise<T> {
         : "تعذر تنفيذ الطلب.";
 
   if (!response.ok || json.success === false) {
-    if (response.status === 401 || response.status === 403) {
+    if (response.status === 401) {
       clearSession();
     }
 
