@@ -215,7 +215,6 @@ export default function ContentPage() {
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[1fr_1.6fr]">
-        {session.user?.role === "admin" ? (
         <Card title={editingId ? "تعديل مادة" : "إضافة مادة جديدة"}>
           <div className="space-y-4">
             {editingId ? (
@@ -446,7 +445,6 @@ export default function ContentPage() {
                       </div>
                     </div>
 
-                    {session.user?.role === "admin" ? (
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleEditContent(item)}
