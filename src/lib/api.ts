@@ -343,6 +343,87 @@ export async function resolveCurrentUser(baseUrl: string, token: string) {
   return json.data ?? json.user ?? null;
 }
 
+export function getGoogleClientId() {
+  return process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim() || "";
+}
+
+function buildSessionFromAuthPayload(
+  resolvedBaseUrl: string,
+  json: {
+    accessToken?: string | null;
+    user?: {
+      id: string;
+      email: string;
+      fullName?: string | null;
+      avatarUrl?: string | null;
+      role?: AdminRole | null;
+      roles?: string[];
+    } | null;
+    data?: { token?: string | null; accessToken?: string | null; user?: SessionUser | null } | null;
+  },
+) {
+  const data = json.data;
+  const token = json.accessToken || data?.accessToken || data?.token || null;
+  const contractUser = json.user
+    ? {
+        id: json.user.id,
+        email: json.user.email,
+        full_name: json.user.fullName ?? null,
+        avatar_url: json.user.avatarUrl ?? null,
+        role: json.user.role ?? null,
+        roles: json.user.roles ?? [],
+      }
+    : null;
+  const user = contractUser || data?.user || null;
+
+  if (!token || !user) {
+    throw new Error("الخادم لم يرجع جلسة دخول صالحة.");
+  }
+
+  ensureAdminAccess(user);
+
+  const session: AdminSession = {
+    baseUrl: resolvedBaseUrl,
+    token,
+    user,
+  };
+
+  saveSession(session);
+  return session;
+}
+
+export async function loginWithGoogle({
+  baseUrl,
+  idToken,
+}: {
+  baseUrl?: string;
+  idToken: string;
+}) {
+  const resolvedBaseUrl = normalizeBaseUrl(baseUrl);
+  const response = await safeFetch(`${resolvedBaseUrl}/auth/google`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ idToken }),
+  });
+
+  const json = await parseResponse<{
+    accessToken?: string | null;
+    user?: {
+      id: string;
+      email: string;
+      fullName?: string | null;
+      avatarUrl?: string | null;
+      role?: AdminRole | null;
+      roles?: string[];
+    } | null;
+    data?: { token?: string | null; accessToken?: string | null; user?: SessionUser | null } | null;
+  }>(response);
+
+  return buildSessionFromAuthPayload(resolvedBaseUrl, json);
+}
+
 export async function loginWithPassword({
   baseUrl,
   email,
@@ -364,23 +445,20 @@ export async function loginWithPassword({
     }),
   });
 
-  const json = await parseResponse<{ data?: { token?: string; user?: SessionUser } }>(response);
-  const payload = json.data;
+  const json = await parseResponse<{
+    accessToken?: string | null;
+    user?: {
+      id: string;
+      email: string;
+      fullName?: string | null;
+      avatarUrl?: string | null;
+      role?: AdminRole | null;
+      roles?: string[];
+    } | null;
+    data?: { token?: string | null; accessToken?: string | null; user?: SessionUser | null } | null;
+  }>(response);
 
-  if (!payload?.token) {
-    throw new Error("الخادم لم يرجع رمز جلسة صالح.");
-  }
-
-  ensureAdminAccess(payload.user ?? null);
-
-  const session: AdminSession = {
-    baseUrl: resolvedBaseUrl,
-    token: payload.token,
-    user: payload.user ?? null,
-  };
-
-  saveSession(session);
-  return session;
+  return buildSessionFromAuthPayload(resolvedBaseUrl, json);
 }
 
 export async function saveManualToken({
