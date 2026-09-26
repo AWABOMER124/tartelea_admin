@@ -7,6 +7,7 @@ import {
   clearSession,
   getDefaultApiBaseUrl,
   getGoogleClientId,
+  getPublicAuthConfig,
   loginWithGoogle,
   loginWithPassword,
   normalizeBaseUrl,
@@ -61,10 +62,10 @@ export function SessionDialog({ open, onClose }: SessionDialogProps) {
   const [submitting, setSubmitting] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleReady, setGoogleReady] = useState(false);
+  const [googleClientId, setGoogleClientId] = useState(() => getGoogleClientId());
   const [showAdvanced, setShowAdvanced] = useState(false);
   const googleButtonRef = useRef<HTMLDivElement | null>(null);
   const configuredBaseUrl = getDefaultApiBaseUrl();
-  const googleClientId = getGoogleClientId();
 
   useEffect(() => {
     if (!open) return;
@@ -74,6 +75,27 @@ export function SessionDialog({ open, onClose }: SessionDialogProps) {
     setManualToken(session.token ?? "");
     setShowAdvanced(false);
   }, [open]);
+
+  useEffect(() => {
+    if (!open || googleClientId) return;
+
+    let cancelled = false;
+    const resolvedBaseUrl = baseUrl || configuredBaseUrl;
+
+    void getPublicAuthConfig(resolvedBaseUrl)
+      .then((config) => {
+        if (!cancelled && config.googleClientId) {
+          setGoogleClientId(config.googleClientId);
+        }
+      })
+      .catch(() => {
+        // Password login remains available if public auth config cannot be loaded.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, googleClientId, baseUrl, configuredBaseUrl]);
 
   useEffect(() => {
     if (!open || !googleClientId) return;
