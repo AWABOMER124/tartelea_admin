@@ -1,11 +1,11 @@
 import { twMerge } from "tailwind-merge";
 
 const toneStyles = {
-  neutral: "bg-white/8 text-white/80 border-white/10",
-  success: "bg-emerald-500/10 text-emerald-300 border-emerald-400/20",
-  warning: "bg-amber-500/10 text-amber-200 border-amber-400/20",
-  danger: "bg-rose-500/10 text-rose-200 border-rose-400/20",
-  info: "bg-cyan-500/10 text-cyan-200 border-cyan-400/20",
+  neutral: "bg-[var(--surface-soft)] text-[var(--muted-strong)] border-[var(--border)]",
+  success: "bg-[var(--success-soft)] text-[var(--success)] border-[color:rgba(79,117,95,0.18)]",
+  warning: "bg-[var(--warning-soft)] text-[var(--warning)] border-[color:rgba(154,106,29,0.18)]",
+  danger: "bg-[var(--danger-soft)] text-[var(--danger)] border-[color:rgba(181,75,75,0.18)]",
+  info: "bg-[var(--info-soft)] text-[var(--info)] border-[color:rgba(70,107,118,0.18)]",
 };
 
 export function StatusBadge({
@@ -20,7 +20,7 @@ export function StatusBadge({
   return (
     <span
       className={twMerge(
-        "inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold",
+        "inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold",
         toneStyles[tone],
         className,
       )}
