@@ -82,8 +82,8 @@ export default function NotificationsPage() {
   return (
     <div className="space-y-8">
       <section>
-        <h2 className="text-3xl font-black text-white">الإشعارات والبث الجماعي</h2>
-        <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-300">
+        <h2 className="text-3xl font-black text-[var(--foreground)]">الإشعارات والبث الجماعي</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-7 text-[var(--muted-strong)]">
           يتم الآن إنشاء إشعارات البث من خلال الـ Backend نفسه مع احترام الأدوار المستهدفة وسجل
           مركزي لكل عملية إرسال.
         </p>
@@ -93,33 +93,33 @@ export default function NotificationsPage() {
         {session.user?.role === "admin" ? (
         <Card title="إرسال إشعار جديد">
           <div className="space-y-4">
-            <label className="block text-sm text-slate-300">
+            <label className="block text-sm text-[var(--muted-strong)]">
               العنوان
               <input
                 value={form.title}
                 onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
-                className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+                className="mt-2 w-full rounded-[9px] border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-[color:rgba(74,44,29,0.32)]"
               />
             </label>
 
-            <label className="block text-sm text-slate-300">
+            <label className="block text-sm text-[var(--muted-strong)]">
               الرسالة
               <textarea
                 value={form.message}
                 onChange={(event) =>
                   setForm((current) => ({ ...current, message: event.target.value }))
                 }
-                className="mt-2 h-32 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+                className="mt-2 h-32 w-full rounded-[9px] border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-[color:rgba(74,44,29,0.32)]"
               />
             </label>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <label className="block text-sm text-slate-300">
+              <label className="block text-sm text-[var(--muted-strong)]">
                 النوع
                 <select
                   value={form.type}
                   onChange={(event) => setForm((current) => ({ ...current, type: event.target.value }))}
-                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+                  className="mt-2 w-full rounded-[9px] border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-[color:rgba(74,44,29,0.32)]"
                 >
                   <option value="system">نظامي</option>
                   <option value="room">غرفة</option>
@@ -127,14 +127,14 @@ export default function NotificationsPage() {
                 </select>
               </label>
 
-              <label className="block text-sm text-slate-300">
+              <label className="block text-sm text-[var(--muted-strong)]">
                 الجمهور المستهدف
                 <select
                   value={form.target_role}
                   onChange={(event) =>
                     setForm((current) => ({ ...current, target_role: event.target.value }))
                   }
-                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+                  className="mt-2 w-full rounded-[9px] border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-[color:rgba(74,44,29,0.32)]"
                 >
                   {audienceOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -148,7 +148,7 @@ export default function NotificationsPage() {
             <button
               onClick={handleBroadcast}
               disabled={sending}
-              className="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-cyan-500 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex w-full items-center justify-center gap-3 rounded-[9px] bg-[var(--primary)] px-4 py-3 font-semibold text-white transition hover:bg-[var(--primary)] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {sending ? <LoaderCircle size={18} className="animate-spin" /> : <Send size={18} />}
               إرسال البث
@@ -160,34 +160,34 @@ export default function NotificationsPage() {
         <Card title="السجل الأخير">
           <div className="space-y-4">
             {loading ? (
-              <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 text-center text-sm text-slate-400">
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-6 text-center text-sm text-[var(--muted)]">
                 <span className="inline-flex items-center gap-3">
                   <LoaderCircle size={16} className="animate-spin" />
                   جارٍ تحميل السجل...
                 </span>
               </div>
             ) : notifications.length === 0 ? (
-              <p className="text-sm text-slate-400">لا يوجد سجل إشعارات حتى الآن.</p>
+              <p className="text-sm text-[var(--muted)]">لا يوجد سجل إشعارات حتى الآن.</p>
             ) : (
               notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className="rounded-3xl border border-white/10 bg-white/[0.03] p-5"
+                  className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-5"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-4">
-                      <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-cyan-100">
+                      <div className="rounded-[9px] border border-[var(--border)] bg-[var(--surface-soft)] p-3 text-[var(--primary)]">
                         {notification.type === "system" ? <Megaphone size={18} /> : <BellRing size={18} />}
                       </div>
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-semibold text-white">{notification.title}</p>
+                          <p className="font-semibold text-[var(--foreground)]">{notification.title}</p>
                           <StatusBadge label={notification.type} tone="info" />
                         </div>
-                        <p className="mt-2 text-sm leading-7 text-slate-300">
+                        <p className="mt-2 text-sm leading-7 text-[var(--muted-strong)]">
                           {notification.message || "بدون رسالة نصية."}
                         </p>
-                        <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-500">
+                        <div className="mt-3 flex flex-wrap gap-4 text-xs text-[var(--muted)]">
                           <span>المرسل: {notification.actor_name || "النظام"}</span>
                           <span>المستلمون: {notification.delivered_count ?? 0}</span>
                           <span>{formatDate(notification.created_at)}</span>
