@@ -91,8 +91,8 @@ export default function RoomsPage() {
   return (
     <div className="space-y-8">
       <section>
-        <h2 className="text-3xl font-black text-white">الغرف وجدول البث المباشر</h2>
-        <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-300">
+        <h2 className="text-3xl font-black text-[var(--foreground)]">الغرف وجدول البث المباشر</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-7 text-[var(--muted-strong)]">
           شاشة موحدة تعرض الغرف المجدولة من قاعدة البيانات والغرف الصوتية المباشرة من نفس الـ Backend.
         </p>
       </section>
@@ -101,22 +101,22 @@ export default function RoomsPage() {
         <Card title="الغرف المباشرة الآن">
           <div className="space-y-4">
             {loading ? (
-              <p className="text-sm text-slate-400">جارٍ تحميل البث المباشر...</p>
+              <p className="text-sm text-[var(--muted)]">جارٍ تحميل البث المباشر...</p>
             ) : liveRooms.length === 0 ? (
-              <p className="text-sm text-slate-400">لا توجد غرف مباشرة نشطة حاليًا.</p>
+              <p className="text-sm text-[var(--muted)]">لا توجد غرف مباشرة نشطة حاليًا.</p>
             ) : (
               liveRooms.map((room) => (
                 <div
                   key={room.id}
-                  className="rounded-3xl border border-white/10 bg-white/[0.03] p-4"
+                  className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-4"
                 >
                   <div className="flex items-center justify-between gap-4">
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <Radio size={18} className="text-rose-300" />
-                        <p className="font-semibold text-white">{room.title}</p>
+                        <p className="font-semibold text-[var(--foreground)]">{room.title}</p>
                       </div>
-                      <p className="text-sm text-slate-300">المضيف: {room.host_name || "غير معروف"}</p>
+                      <p className="text-sm text-[var(--muted-strong)]">المضيف: {room.host_name || "غير معروف"}</p>
                     </div>
                     <StatusBadge
                       label={`${room.participants_count ?? 0} مشارك`}
@@ -132,33 +132,33 @@ export default function RoomsPage() {
         <Card title="الغرف المجدولة والمراجعة">
           <div className="space-y-4">
             {loading ? (
-              <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 text-center text-sm text-slate-400">
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-6 text-center text-sm text-[var(--muted)]">
                 <span className="inline-flex items-center gap-3">
                   <LoaderCircle size={16} className="animate-spin" />
                   جارٍ تحميل الغرف...
                 </span>
               </div>
             ) : rooms.length === 0 ? (
-              <p className="text-sm text-slate-400">لا توجد غرف مجدولة بعد.</p>
+              <p className="text-sm text-[var(--muted)]">لا توجد غرف مجدولة بعد.</p>
             ) : (
               rooms.map((room) => (
                 <div
                   key={room.id}
-                  className="rounded-3xl border border-white/10 bg-white/[0.03] p-5"
+                  className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-5"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-5">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-lg font-semibold text-white">{room.title}</h3>
+                        <h3 className="text-lg font-semibold text-[var(--foreground)]">{room.title}</h3>
                         <StatusBadge
                           label={room.is_approved ? "معتمدة" : "بانتظار الاعتماد"}
                           tone={room.is_approved ? "success" : "warning"}
                         />
                       </div>
-                      <p className="mt-2 text-sm leading-7 text-slate-300">
+                      <p className="mt-2 text-sm leading-7 text-[var(--muted-strong)]">
                         {room.description || "لا يوجد وصف متوفر."}
                       </p>
-                      <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-slate-500">
+                      <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-[var(--muted)]">
                         <span>المضيف: {room.host_name || "غير معروف"}</span>
                         <span>الموعد: {formatDate(room.scheduled_at || room.created_at)}</span>
                         <span className="inline-flex items-center gap-1">
@@ -184,7 +184,7 @@ export default function RoomsPage() {
                       <button
                         disabled={updatingId === room.id || session.user?.role !== "admin"}
                         onClick={() => updateApproval(room.id, true)}
-                        className="inline-flex items-center gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-500/20 disabled:opacity-60"
+                        className="inline-flex items-center gap-2 rounded-[9px] border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-500/20 disabled:opacity-60"
                       >
                         <Check size={16} />
                         اعتماد
@@ -192,7 +192,7 @@ export default function RoomsPage() {
                       <button
                         disabled={updatingId === room.id || session.user?.role !== "admin"}
                         onClick={() => updateApproval(room.id, false)}
-                        className="inline-flex items-center gap-2 rounded-2xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-100 transition hover:bg-rose-500/20 disabled:opacity-60"
+                        className="inline-flex items-center gap-2 rounded-[9px] border border-[color:rgba(181,75,75,0.18)] bg-[var(--danger-soft)] px-4 py-3 text-sm font-semibold text-rose-100 transition hover:bg-rose-500/20 disabled:opacity-60"
                       >
                         <X size={16} />
                         تعليق
