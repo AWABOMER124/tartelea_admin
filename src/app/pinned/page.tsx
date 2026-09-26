@@ -143,8 +143,8 @@ export default function PinnedPage() {
   return (
     <div className="space-y-8">
       <section>
-        <h2 className="text-3xl font-black text-white">المحتوى المثبّت</h2>
-        <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-300">
+        <h2 className="text-3xl font-black text-[var(--foreground)]">المحتوى المثبّت</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-7 text-[var(--muted-strong)]">
           إدارة العناصر المثبتة تمتد الآن لعدة كيانات: محتوى، منشورات، ورش، غرف، أو دورات.
         </p>
       </section>
@@ -153,20 +153,20 @@ export default function PinnedPage() {
         <Card title={editingId ? "تعديل عنصر مثبت" : "إضافة عنصر مثبت"}>
           <div className="space-y-4">
             {editingId ? (
-              <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-4 text-sm text-cyan-100">
+              <div className="rounded-[9px] border border-[color:rgba(74,44,29,0.16)] bg-[var(--primary-soft)] p-4 text-sm text-[var(--primary)]">
                 يمكنك الآن تعديل بيانات العنصر المثبت ثم حفظها أو إلغاء التعديل.
               </div>
             ) : null}
 
             <div className="grid gap-4 md:grid-cols-2">
-              <label className="block text-sm text-slate-300">
+              <label className="block text-sm text-[var(--muted-strong)]">
                 نوع الكيان
                 <select
                   value={form.entity_type}
                   onChange={(event) =>
                     setForm((current) => ({ ...current, entity_type: event.target.value }))
                   }
-                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+                  className="mt-2 w-full rounded-[9px] border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-[color:rgba(74,44,29,0.32)]"
                 >
                   <option value="content">محتوى</option>
                   <option value="post">منشور</option>
@@ -176,53 +176,53 @@ export default function PinnedPage() {
                 </select>
               </label>
 
-              <label className="block text-sm text-slate-300">
+              <label className="block text-sm text-[var(--muted-strong)]">
                 المعرف
                 <input
                   value={form.entity_id}
                   onChange={(event) =>
                     setForm((current) => ({ ...current, entity_id: event.target.value }))
                   }
-                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-left text-sm outline-none focus:border-cyan-400/30"
+                  className="mt-2 w-full rounded-[9px] border border-[var(--border)] bg-white px-4 py-3 text-left text-sm outline-none focus:border-[color:rgba(74,44,29,0.32)]"
                   dir="ltr"
                 />
               </label>
             </div>
 
-            <label className="block text-sm text-slate-300">
+            <label className="block text-sm text-[var(--muted-strong)]">
               العنوان
               <input
                 value={form.title}
                 onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
-                className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+                className="mt-2 w-full rounded-[9px] border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-[color:rgba(74,44,29,0.32)]"
               />
             </label>
 
-            <label className="block text-sm text-slate-300">
+            <label className="block text-sm text-[var(--muted-strong)]">
               وصف قصير
               <textarea
                 value={form.subtitle}
                 onChange={(event) =>
                   setForm((current) => ({ ...current, subtitle: event.target.value }))
                 }
-                className="mt-2 h-28 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+                className="mt-2 h-28 w-full rounded-[9px] border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-[color:rgba(74,44,29,0.32)]"
               />
             </label>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <label className="block text-sm text-slate-300">
+              <label className="block text-sm text-[var(--muted-strong)]">
                 رابط الصورة
                 <input
                   value={form.thumbnail_url}
                   onChange={(event) =>
                     setForm((current) => ({ ...current, thumbnail_url: event.target.value }))
                   }
-                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-left text-sm outline-none focus:border-cyan-400/30"
+                  className="mt-2 w-full rounded-[9px] border border-[var(--border)] bg-white px-4 py-3 text-left text-sm outline-none focus:border-[color:rgba(74,44,29,0.32)]"
                   dir="ltr"
                 />
               </label>
 
-              <label className="block text-sm text-slate-300">
+              <label className="block text-sm text-[var(--muted-strong)]">
                 ترتيب العرض
                 <input
                   type="number"
@@ -233,7 +233,7 @@ export default function PinnedPage() {
                       sort_order: Number.parseInt(event.target.value || "0", 10),
                     }))
                   }
-                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+                  className="mt-2 w-full rounded-[9px] border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-[color:rgba(74,44,29,0.32)]"
                 />
               </label>
             </div>
@@ -241,7 +241,7 @@ export default function PinnedPage() {
             <button
               onClick={handleSavePinned}
               disabled={saving || session.user?.role !== "admin"}
-              className="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-cyan-500 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex w-full items-center justify-center gap-3 rounded-[9px] bg-[var(--primary)] px-4 py-3 font-semibold text-white transition hover:bg-[var(--primary)] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {saving ? <LoaderCircle size={18} className="animate-spin" /> : <Pin size={18} />}
               {editingId ? "حفظ التعديلات" : "تثبيت العنصر"}
@@ -251,7 +251,7 @@ export default function PinnedPage() {
               <button
                 onClick={resetForm}
                 type="button"
-                className="inline-flex w-full items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 font-semibold text-white transition hover:bg-white/[0.08]"
+                className="inline-flex w-full items-center justify-center gap-3 rounded-[9px] border border-[var(--border)] bg-white px-4 py-3 font-semibold text-[var(--foreground)] transition hover:bg-white/[0.08]"
               >
                 <X size={18} />
                 إلغاء التعديل
@@ -263,28 +263,28 @@ export default function PinnedPage() {
         <Card title="العناصر المثبتة الحالية">
           <div className="space-y-4">
             {loading ? (
-              <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 text-center text-sm text-slate-400">
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-6 text-center text-sm text-[var(--muted)]">
                 <span className="inline-flex items-center gap-3">
                   <LoaderCircle size={16} className="animate-spin" />
                   جارٍ تحميل المثبتات...
                 </span>
               </div>
             ) : items.length === 0 ? (
-              <p className="text-sm text-slate-400">لا توجد عناصر مثبتة بعد.</p>
+              <p className="text-sm text-[var(--muted)]">لا توجد عناصر مثبتة بعد.</p>
             ) : (
               items.map((item) => (
-                <div key={item.id} className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+                <div key={item.id} className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-5">
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-3">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-lg font-semibold text-white">{item.title}</h3>
+                        <h3 className="text-lg font-semibold text-[var(--foreground)]">{item.title}</h3>
                         <StatusBadge label={item.entity_type} tone="info" />
                         <StatusBadge label={`ترتيب ${item.sort_order ?? 0}`} tone="neutral" />
                       </div>
-                      <p className="text-sm leading-7 text-slate-300">
+                      <p className="text-sm leading-7 text-[var(--muted-strong)]">
                         {item.subtitle || "لا يوجد وصف مختصر."}
                       </p>
-                      <div className="flex flex-wrap gap-4 text-xs text-slate-500">
+                      <div className="flex flex-wrap gap-4 text-xs text-[var(--muted)]">
                         <span>الكيان: {item.entity_id}</span>
                         <span>{formatDate(item.created_at)}</span>
                       </div>
@@ -294,7 +294,7 @@ export default function PinnedPage() {
                       <button
                         onClick={() => handleEditPinned(item)}
                         disabled={session.user?.role !== "admin"}
-                        className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-3 text-cyan-100 transition hover:bg-cyan-500/20"
+                        className="rounded-[9px] border border-[color:rgba(74,44,29,0.16)] bg-[var(--primary-soft)] p-3 text-[var(--primary)] transition hover:bg-[var(--primary)]/20"
                       >
                         <PencilLine size={16} />
                       </button>
@@ -302,7 +302,7 @@ export default function PinnedPage() {
                       <button
                         onClick={() => handleDeletePinned(item.id)}
                         disabled={session.user?.role !== "admin"}
-                        className="rounded-2xl border border-rose-400/20 bg-rose-500/10 p-3 text-rose-200 transition hover:bg-rose-500/20"
+                        className="rounded-[9px] border border-[color:rgba(181,75,75,0.18)] bg-[var(--danger-soft)] p-3 text-[var(--danger)] transition hover:bg-rose-500/20"
                       >
                         <Trash2 size={16} />
                       </button>

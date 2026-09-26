@@ -87,8 +87,8 @@ export default function CoursesPage() {
   return (
     <div className="space-y-8">
       <section>
-        <h2 className="text-3xl font-black text-white">دورات المدربين</h2>
-        <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-300">
+        <h2 className="text-3xl font-black text-[var(--foreground)]">دورات المدربين</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-7 text-[var(--muted-strong)]">
           مسار اعتماد واضح لكل دورة مدرب داخل قاعدة البيانات الموحدة.
         </p>
       </section>
@@ -96,35 +96,35 @@ export default function CoursesPage() {
       <Card title="طلبات الدورات">
         <div className="space-y-4">
           {loading ? (
-            <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 text-center text-sm text-slate-400">
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-6 text-center text-sm text-[var(--muted)]">
               <span className="inline-flex items-center gap-3">
                 <LoaderCircle size={16} className="animate-spin" />
                 جارٍ تحميل الدورات...
               </span>
             </div>
           ) : courses.length === 0 ? (
-            <p className="text-sm text-slate-400">لا توجد دورات مدربين بعد.</p>
+            <p className="text-sm text-[var(--muted)]">لا توجد دورات مدربين بعد.</p>
           ) : (
             courses.map((course) => (
-              <div key={course.id} className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+              <div key={course.id} className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-5">
                 <div className="flex flex-wrap items-start justify-between gap-5">
                   <div className="flex items-start gap-4">
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-cyan-100">
+                    <div className="rounded-[9px] border border-[var(--border)] bg-[var(--surface-soft)] p-3 text-[var(--primary)]">
                       <BookOpen size={20} />
                     </div>
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-lg font-semibold text-white">{course.title}</h3>
+                        <h3 className="text-lg font-semibold text-[var(--foreground)]">{course.title}</h3>
                         <StatusBadge
                           label={course.is_approved ? "معتمدة" : "بانتظار الاعتماد"}
                           tone={course.is_approved ? "success" : "warning"}
                         />
                         <StatusBadge label={course.category || "general"} tone="info" />
                       </div>
-                      <p className="mt-2 text-sm leading-7 text-slate-300">
+                      <p className="mt-2 text-sm leading-7 text-[var(--muted-strong)]">
                         {course.description || "بدون وصف تفصيلي."}
                       </p>
-                      <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-500">
+                      <div className="mt-3 flex flex-wrap gap-4 text-xs text-[var(--muted)]">
                         <span>المدرب: {course.trainer_name || "غير معروف"}</span>
                         <span>التاريخ: {formatDate(course.created_at)}</span>
                         <span>السعر: {course.price ?? 0}</span>
@@ -147,7 +147,7 @@ export default function CoursesPage() {
                     <button
                       disabled={updatingId === course.id || session.user?.role !== "admin"}
                       onClick={() => updateApproval(course.id, true)}
-                      className="inline-flex items-center gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-500/20 disabled:opacity-60"
+                      className="inline-flex items-center gap-2 rounded-[9px] border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-500/20 disabled:opacity-60"
                     >
                       <Check size={16} />
                       اعتماد
@@ -155,7 +155,7 @@ export default function CoursesPage() {
                     <button
                       disabled={updatingId === course.id || session.user?.role !== "admin"}
                       onClick={() => updateApproval(course.id, false)}
-                      className="inline-flex items-center gap-2 rounded-2xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-100 transition hover:bg-rose-500/20 disabled:opacity-60"
+                      className="inline-flex items-center gap-2 rounded-[9px] border border-[color:rgba(181,75,75,0.18)] bg-[var(--danger-soft)] px-4 py-3 text-sm font-semibold text-rose-100 transition hover:bg-rose-500/20 disabled:opacity-60"
                     >
                       <X size={16} />
                       تعليق

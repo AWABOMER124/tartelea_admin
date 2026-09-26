@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Bell, LogOut, PlugZap, Shield, User } from "lucide-react";
+import Image from "next/image";
+import { Bell, LogOut, LogIn, UserRound } from "lucide-react";
 import { clearSession } from "@/lib/api";
 import { useAdminSession } from "@/hooks/useAdminSession";
 import { SessionDialog } from "@/components/SessionDialog";
@@ -10,7 +11,7 @@ const roleLabels: Record<string, string> = {
   admin: "مدير النظام",
   moderator: "مشرف",
   trainer: "مدرب",
-  student: "طالب",
+  member: "عضو",
 };
 
 export function Header() {
@@ -18,10 +19,7 @@ export function Header() {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const userLabel = useMemo(() => {
-    if (!session.user) {
-      return "غير متصل";
-    }
-
+    if (!session.user) return "غير متصل";
     return session.user.full_name || session.user.email;
   }, [session.user]);
 
@@ -31,52 +29,65 @@ export function Header() {
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-slate-950/85 px-3 backdrop-blur-xl sm:px-6">
-        <div className="mx-auto flex h-20 max-w-[1600px] items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="hidden rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-3 text-cyan-200 sm:block">
-              <Shield size={22} />
-            </div>
-            <div className="space-y-1">
-              <h1 className="text-base font-black tracking-tight text-white sm:text-2xl">بوابة إدارة ترتيلة</h1>
-              <p className="hidden text-sm text-slate-300 md:block">لوحة مستقلة لإدارة المنصة</p>
+      <header className="fixed left-0 right-0 top-0 z-40 border-b border-[var(--border)] bg-white/95 backdrop-blur-md lg:right-60">
+        <div className="mx-auto flex h-[72px] max-w-[1480px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+          <div className="flex min-w-0 items-center gap-3 lg:hidden">
+            <Image
+              src="/images/logo.png"
+              alt="شعار المدرسة الترتيلية"
+              width={38}
+              height={38}
+              className="h-9 w-9 rounded-[9px] object-cover"
+            />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-bold text-[var(--foreground)] sm:text-base">إدارة المدرسة الترتيلية</p>
+              <p className="hidden text-xs text-[var(--muted)] sm:block">لوحة الإدارة المستقلة</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="hidden min-w-0 lg:block">
+            <p className="text-sm font-bold text-[var(--foreground)]">لوحة الإدارة</p>
+            <p className="mt-0.5 text-xs text-[var(--muted)]">إدارة المحتوى والمجتمع والتشغيل من مكان واحد</p>
+          </div>
+
+          <div className="mr-auto flex items-center gap-1.5 lg:mr-0">
+            <button
+              type="button"
+              className="relative flex h-9 w-9 items-center justify-center rounded-[8px] text-[var(--muted)] hover:bg-[var(--secondary)] hover:text-[var(--foreground)]"
+              aria-label="الإشعارات"
+            >
+              <Bell size={17} />
+              <span className="absolute left-1 top-1 h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
+            </button>
+
+            {session.isAuthenticated ? (
+              <div className="hidden items-center gap-2 border-r border-[var(--border)] pr-3 sm:flex">
+                <div className="flex h-9 w-9 items-center justify-center rounded-[8px] bg-[var(--primary-soft)] text-[var(--primary)]">
+                  <UserRound size={17} />
+                </div>
+                <div className="hidden max-w-[180px] md:block">
+                  <p className="truncate text-xs font-bold text-[var(--foreground)]">{userLabel}</p>
+                  <p className="mt-0.5 text-[11px] text-[var(--muted)]">
+                    {roleLabels[session.user?.role ?? ""] || "صلاحية غير محددة"}
+                  </p>
+                </div>
+              </div>
+            ) : null}
+
             <button
               onClick={() => setDialogOpen(true)}
-              className="inline-flex items-center gap-2 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 px-3 py-3 text-xs font-semibold text-cyan-100 transition hover:bg-cyan-500/20 sm:px-4 sm:text-sm"
+              className={session.isAuthenticated ? "admin-secondary-button h-9 min-h-9 px-3" : "admin-primary-button h-9 min-h-9 px-3"}
             >
-              <PlugZap size={16} />
-              <span className="hidden sm:inline">{session.isAuthenticated ? "إدارة الاتصال" : "تسجيل الدخول"}</span>
+              <LogIn size={15} />
+              <span className="hidden sm:inline">{session.isAuthenticated ? "إدارة الجلسة" : "تسجيل الدخول"}</span>
             </button>
-
-            <button className="relative hidden rounded-2xl border border-white/10 bg-white/5 p-3 text-slate-200 transition hover:bg-white/10 md:block">
-              <Bell size={18} />
-              <span className="absolute -left-1 -top-1 h-5 min-w-5 rounded-full bg-amber-400 px-1 text-center text-[10px] font-bold leading-5 text-slate-950">
-                0
-              </span>
-            </button>
-
-            <div className="hidden items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 sm:flex">
-              <div className="hidden text-right sm:block">
-                <p className="text-sm font-semibold text-white">{userLabel}</p>
-                <p className="text-xs text-slate-400">
-                  {roleLabels[session.user?.role ?? ""] || "لم يتم التحقق من الصلاحية"}
-                </p>
-              </div>
-              <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-slate-900 text-slate-200">
-                <User size={18} />
-              </div>
-            </div>
 
             {session.isAuthenticated ? (
               <button
                 onClick={handleLogout}
-                className="hidden items-center gap-2 rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:bg-white/5 lg:inline-flex"
+                className="hidden h-9 items-center gap-2 rounded-[8px] px-3 text-xs font-semibold text-[var(--muted)] hover:bg-[var(--secondary)] hover:text-[var(--foreground)] xl:inline-flex"
               >
-                <LogOut size={16} />
+                <LogOut size={15} />
                 خروج
               </button>
             ) : null}

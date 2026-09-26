@@ -42,8 +42,8 @@ export default function AuditPage() {
   return (
     <div className="space-y-8">
       <section>
-        <h2 className="text-3xl font-black text-white">سجل التدقيق الإداري</h2>
-        <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-300">
+        <h2 className="text-3xl font-black text-[var(--foreground)]">سجل التدقيق الإداري</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-7 text-[var(--muted-strong)]">
           كل تعديل إداري مهم يُسجَّل هنا مع نوع العملية والكيان والفاعل وعنوان الطلب.
         </p>
       </section>
@@ -51,35 +51,35 @@ export default function AuditPage() {
       <Card title="آخر العمليات">
         <div className="space-y-4">
           {loading ? (
-            <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 text-center text-sm text-slate-400">
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-6 text-center text-sm text-[var(--muted)]">
               <span className="inline-flex items-center gap-3">
                 <LoaderCircle size={16} className="animate-spin" />
                 جارٍ تحميل السجل...
               </span>
             </div>
           ) : logs.length === 0 ? (
-            <p className="text-sm text-slate-400">لا توجد عمليات تدقيق مسجلة بعد.</p>
+            <p className="text-sm text-[var(--muted)]">لا توجد عمليات تدقيق مسجلة بعد.</p>
           ) : (
             logs.map((log) => (
-              <div key={log.id} className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+              <div key={log.id} className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-4">
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-cyan-100">
+                    <div className="rounded-[9px] border border-[var(--border)] bg-[var(--surface-soft)] p-3 text-[var(--primary)]">
                       <FileSearch size={18} />
                     </div>
                     <div className="space-y-3">
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-semibold text-white">{log.action}</p>
+                        <p className="font-semibold text-[var(--foreground)]">{log.action}</p>
                         <StatusBadge label={log.entity_type} tone="info" />
                         {log.actor_role ? <StatusBadge label={log.actor_role} tone="neutral" /> : null}
                       </div>
-                      <div className="text-sm leading-7 text-slate-300">
+                      <div className="text-sm leading-7 text-[var(--muted-strong)]">
                         <p>الفاعل: {log.actor_name || log.actor_email || "غير معروف"}</p>
                         <p>الكيان: {log.entity_id || "غير محدد"}</p>
                         <p>عنوان الطلب: {log.request_ip || "غير متوفر"}</p>
                       </div>
-                      <details className="rounded-2xl border border-white/10 bg-slate-950/60 p-4 text-xs text-slate-300">
-                        <summary className="cursor-pointer font-semibold text-slate-200">تفاصيل العملية</summary>
+                      <details className="rounded-[9px] border border-[var(--border)] bg-slate-950/60 p-4 text-xs text-[var(--muted-strong)]">
+                        <summary className="cursor-pointer font-semibold text-[var(--muted-strong)]">تفاصيل العملية</summary>
                         <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-words">
                           {JSON.stringify(log.details || {}, null, 2)}
                         </pre>
@@ -87,7 +87,7 @@ export default function AuditPage() {
                     </div>
                   </div>
 
-                  <p className="text-xs text-slate-500">{formatDate(log.created_at)}</p>
+                  <p className="text-xs text-[var(--muted)]">{formatDate(log.created_at)}</p>
                 </div>
               </div>
             ))

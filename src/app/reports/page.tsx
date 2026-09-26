@@ -69,14 +69,14 @@ export default function ReportsPage() {
     <div className="space-y-8">
       <section className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-black text-white">التقارير والتحليلات</h2>
-        <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-300">
+          <h2 className="text-3xl font-black text-[var(--foreground)]">التقارير والتحليلات</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-7 text-[var(--muted-strong)]">
             قراءة سريعة لمؤشرات المنصة من نفس بيانات لوحة الإدارة، بدون أي طبقة بيانات منفصلة أو
             استدعاءات مباشرة من الواجهة إلى قاعدة البيانات.
         </p>
         </div>
 
-        <button className="inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-slate-100 transition hover:bg-white/10">
+        <button className="inline-flex items-center gap-3 rounded-[9px] border border-[var(--border)] bg-white px-4 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:bg-white/10">
           <Download size={16} />
           تصدير يدوي قريبًا
         </button>
@@ -85,15 +85,15 @@ export default function ReportsPage() {
       <section className="grid gap-4 md:grid-cols-3">
         {executiveCards.map((card) => (
           <Card key={card.label}>
-            <p className="text-sm text-slate-400">{card.label}</p>
-            <p className="mt-3 text-4xl font-black text-white">{formatCompactNumber(card.value)}</p>
+            <p className="text-sm text-[var(--muted)]">{card.label}</p>
+            <p className="mt-3 text-4xl font-black text-[var(--foreground)]">{formatCompactNumber(card.value)}</p>
           </Card>
         ))}
       </section>
 
       {loading && !stats ? (
         <Card>
-          <div className="flex items-center justify-center gap-3 py-12 text-sm text-slate-400">
+          <div className="flex items-center justify-center gap-3 py-12 text-sm text-[var(--muted)]">
             <LoaderCircle size={16} className="animate-spin" />
             جارٍ تحميل لوحة التحليلات...
           </div>
@@ -106,18 +106,18 @@ export default function ReportsPage() {
             <div className="h-80 pt-4">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={stats.trends.dailySignups}>
-                  <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
-                  <XAxis dataKey="label" stroke="rgba(203,213,225,0.7)" tickLine={false} axisLine={false} />
-                  <YAxis stroke="rgba(203,213,225,0.7)" tickLine={false} axisLine={false} />
+                  <CartesianGrid stroke="#eee8df" vertical={false} />
+                  <XAxis dataKey="label" stroke="#8b8078" tickLine={false} axisLine={false} />
+                  <YAxis stroke="#8b8078" tickLine={false} axisLine={false} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#07131c",
-                      borderColor: "rgba(255,255,255,0.08)",
+                      backgroundColor: "#ffffff",
+                      borderColor: "#e3ddd5",
                       borderRadius: "16px",
                     }}
                   />
                   <Legend />
-                  <Bar dataKey="total" name="تسجيلات" radius={[12, 12, 0, 0]} fill="#38bdf8" />
+                  <Bar dataKey="total" name="تسجيلات" radius={[12, 12, 0, 0]} fill="#4a2c1d" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -138,14 +138,14 @@ export default function ReportsPage() {
                     {stats.trends.contentDistribution.map((entry, index) => (
                       <Cell
                         key={`${entry.name}-${index}`}
-                        fill={["#38bdf8", "#10b981", "#f59e0b"][index % 3]}
+                        fill={["#4a2c1d", "#4f755f", "#b58a35"][index % 3]}
                       />
                     ))}
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#07131c",
-                      borderColor: "rgba(255,255,255,0.08)",
+                      backgroundColor: "#ffffff",
+                      borderColor: "#e3ddd5",
                       borderRadius: "16px",
                     }}
                   />
@@ -166,17 +166,17 @@ export default function ReportsPage() {
                     { label: "مثبتات", value: stats.overview.totalPinned },
                   ]}
                 >
-                  <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
-                  <XAxis dataKey="label" stroke="rgba(203,213,225,0.7)" tickLine={false} axisLine={false} />
-                  <YAxis stroke="rgba(203,213,225,0.7)" tickLine={false} axisLine={false} />
+                  <CartesianGrid stroke="#eee8df" vertical={false} />
+                  <XAxis dataKey="label" stroke="#8b8078" tickLine={false} axisLine={false} />
+                  <YAxis stroke="#8b8078" tickLine={false} axisLine={false} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#07131c",
-                      borderColor: "rgba(255,255,255,0.08)",
+                      backgroundColor: "#ffffff",
+                      borderColor: "#e3ddd5",
                       borderRadius: "16px",
                     }}
                   />
-                  <Line type="monotone" dataKey="value" stroke="#f59e0b" strokeWidth={3} />
+                  <Line type="monotone" dataKey="value" stroke="#b58a35" strokeWidth={3} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -187,12 +187,12 @@ export default function ReportsPage() {
               {stats.pendingApprovals.map((item) => (
                 <div
                   key={`${item.entity_type}-${item.id}`}
-                  className="rounded-3xl border border-white/10 bg-white/[0.03] p-4"
+                  className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-4"
                 >
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="font-semibold text-white">{item.title}</p>
-                      <p className="mt-2 text-xs text-slate-500">{item.entity_type}</p>
+                      <p className="font-semibold text-[var(--foreground)]">{item.title}</p>
+                      <p className="mt-2 text-xs text-[var(--muted)]">{item.entity_type}</p>
                     </div>
                     <p className="text-sm font-semibold text-amber-200">معلّق</p>
                   </div>
@@ -200,7 +200,7 @@ export default function ReportsPage() {
               ))}
 
               {stats.pendingApprovals.length === 0 ? (
-                <p className="text-sm text-slate-400">لا توجد عناصر قيد الانتظار.</p>
+                <p className="text-sm text-[var(--muted)]">لا توجد عناصر قيد الانتظار.</p>
               ) : null}
             </div>
           </Card>

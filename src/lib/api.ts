@@ -11,7 +11,7 @@ const STORAGE_KEYS = {
 const DEFAULT_API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || "http://localhost:3001/api/v1";
 
-export type AdminRole = "admin" | "moderator" | "trainer" | "member";
+export type AdminRole = "admin" | "moderator" | "trainer" | "member" | "guest";
 
 export interface SessionUser {
   id: string;
@@ -71,7 +71,7 @@ export interface AdminUser {
   created_at: string;
   is_verified: boolean;
   role: AdminRole;
-  roles: string[];
+  roles: AdminRole[];
 }
 
 export interface AdminContent {
