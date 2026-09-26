@@ -1,5 +1,5 @@
-import { ReactNode } from 'react';
-import { twMerge } from 'tailwind-merge';
+import { ReactNode } from "react";
+import { twMerge } from "tailwind-merge";
 
 interface CardProps {
   children: ReactNode;
@@ -10,20 +10,18 @@ interface CardProps {
 
 export function Card({ children, title, className, footer }: CardProps) {
   return (
-    <div className={twMerge('glass overflow-hidden flex flex-col', className)}>
-      {title && (
-        <div className="border-b border-white/10 px-6 py-4">
-          <h3 className="text-lg font-semibold text-white">{title}</h3>
+    <section className={twMerge("glass flex flex-col overflow-hidden", className)}>
+      {title ? (
+        <div className="border-b border-[var(--border)] px-4 py-3.5 sm:px-5">
+          <h3 className="text-base font-bold text-[var(--foreground)] sm:text-lg">{title}</h3>
         </div>
-      )}
-      <div className="flex-1 p-6">
-        {children}
-      </div>
-      {footer && (
-        <div className="border-t border-white/10 bg-white/5 px-6 py-4">
+      ) : null}
+      <div className="flex-1 p-4 sm:p-5">{children}</div>
+      {footer ? (
+        <div className="border-t border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3.5 sm:px-5">
           {footer}
         </div>
-      )}
-    </div>
+      ) : null}
+    </section>
   );
 }
