@@ -27,9 +27,7 @@ export function SessionDialog({ open, onClose }: SessionDialogProps) {
   const configuredBaseUrl = getDefaultApiBaseUrl();
 
   useEffect(() => {
-    if (!open) {
-      return;
-    }
+    if (!open) return;
 
     const session = readSession();
     setBaseUrl(session.baseUrl);
@@ -37,9 +35,7 @@ export function SessionDialog({ open, onClose }: SessionDialogProps) {
     setShowAdvanced(false);
   }, [open]);
 
-  if (!open) {
-    return null;
-  }
+  if (!open) return null;
 
   async function handlePasswordLogin() {
     if (!email.trim() || !password.trim()) {
@@ -50,7 +46,7 @@ export function SessionDialog({ open, onClose }: SessionDialogProps) {
     try {
       setSubmitting(true);
       const session = await loginWithPassword({ baseUrl, email, password });
-      toast.success(`تم تسجيل الدخول بصلاحية ${session.user?.role ?? "غير محددة"}.`);
+      toast.success("تم تسجيل الدخول بصلاحية " + (session.user?.role ?? "غير محددة") + ".");
       onClose();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "تعذر تسجيل الدخول.");
@@ -68,7 +64,7 @@ export function SessionDialog({ open, onClose }: SessionDialogProps) {
     try {
       setSubmitting(true);
       const session = await saveManualToken({ baseUrl, token: manualToken.trim() });
-      toast.success(`تم حفظ الجلسة لـ ${session.user?.email ?? "المستخدم الحالي"}.`);
+      toast.success("تم حفظ الجلسة لـ " + (session.user?.email ?? "المستخدم الحالي") + ".");
       onClose();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "تعذر التحقق من الرمز.");
@@ -88,158 +84,125 @@ export function SessionDialog({ open, onClose }: SessionDialogProps) {
     normalizeBaseUrl(activeBaseUrl) === normalizeBaseUrl(configuredBaseUrl);
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-2xl rounded-[28px] border border-white/10 bg-slate-950 p-6 shadow-2xl shadow-black/50">
-        <div className="mb-6 flex items-start justify-between gap-4">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-200">
-              <PlugZap size={14} />
-              تسجيل دخول سريع
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/25 p-4 backdrop-blur-[2px]">
+      <div className="max-h-[92vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-[var(--border)] bg-white p-5 shadow-2xl sm:p-6">
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div>
+            <div className="admin-kicker">
+              <PlugZap size={13} />
+              دخول الإدارة
             </div>
-            <h3 className="text-2xl font-bold text-white">الدخول إلى لوحة إدارة ترتيلة</h3>
-            <p className="max-w-2xl text-sm leading-7 text-slate-300">
-              أدخل بريدك وكلمة المرور فقط، وسيتم الربط تلقائيًا مع الخادم المضبوط.
+            <h3 className="mt-2 text-xl font-bold text-[var(--foreground)]">تسجيل الدخول إلى لوحة الإدارة</h3>
+            <p className="mt-1 max-w-lg text-sm leading-7 text-[var(--muted)]">
+              استخدم حساب مدير أو مشرف للوصول إلى أدوات الإدارة.
             </p>
           </div>
 
           <button
             onClick={onClose}
-            className="rounded-full border border-white/10 p-2 text-slate-300 transition hover:bg-white/5 hover:text-white"
+            className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-[var(--border)] text-[var(--muted)] hover:bg-[var(--secondary)]"
+            aria-label="إغلاق"
           >
-            <X size={18} />
+            <X size={17} />
           </button>
         </div>
 
-        <div className="space-y-5">
-          <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
-            <div className="mb-5 rounded-2xl border border-cyan-400/15 bg-cyan-500/10 p-4 text-sm text-cyan-100">
-              <p className="font-semibold">الخادم الحالي</p>
-              <p className="mt-2 break-all font-mono text-xs text-cyan-50" dir="ltr">
-                {activeBaseUrl}
+        <div className="space-y-4">
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-4 text-sm">
+            <p className="font-bold text-[var(--foreground)]">الخادم الحالي</p>
+            <p className="mt-1 break-all font-mono text-xs text-[var(--muted)]" dir="ltr">
+              {activeBaseUrl}
+            </p>
+            {!usingConfiguredBaseUrl ? (
+              <p className="mt-2 text-xs text-[var(--warning)]">
+                يتم استخدام رابط مخصص محفوظ سابقًا.
               </p>
-              {!usingConfiguredBaseUrl ? (
-                <p className="mt-2 text-xs text-cyan-200/80">
-                  يتم استخدام رابط مخصص محفوظ سابقًا. يمكنك الرجوع للرابط المضبوط من الخيارات المتقدمة.
-                </p>
-              ) : null}
-            </div>
-
-            <form
-              className="space-y-4"
-              onSubmit={(event) => {
-                event.preventDefault();
-                void handlePasswordLogin();
-              }}
-            >
-              <label className="block text-sm text-slate-300">
-                البريد الإلكتروني
-                <input
-                  autoFocus
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-left text-sm outline-none transition focus:border-cyan-400/40"
-                  dir="ltr"
-                  placeholder="admin@tartelea.app"
-                />
-              </label>
-
-              <label className="block text-sm text-slate-300">
-                كلمة المرور
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-left text-sm outline-none transition focus:border-cyan-400/40"
-                  dir="ltr"
-                  placeholder="••••••••"
-                />
-              </label>
-
-              <button
-                type="submit"
-                disabled={submitting}
-                className="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-cyan-500 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {submitting ? (
-                  <LoaderCircle size={18} className="animate-spin" />
-                ) : (
-                  <ShieldCheck size={18} />
-                )}
-                دخول
-              </button>
-            </form>
+            ) : null}
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+          <form
+            className="space-y-4"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void handlePasswordLogin();
+            }}
+          >
+            <label className="block text-sm font-medium text-[var(--foreground)]">
+              البريد الإلكتروني
+              <input
+                autoFocus
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                className="admin-field mt-2 text-left"
+                dir="ltr"
+                placeholder="admin@tartelea.com"
+              />
+            </label>
+
+            <label className="block text-sm font-medium text-[var(--foreground)]">
+              كلمة المرور
+              <input
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                className="admin-field mt-2 text-left"
+                dir="ltr"
+                placeholder="••••••••"
+              />
+            </label>
+
+            <button type="submit" disabled={submitting} className="admin-primary-button w-full disabled:opacity-60">
+              {submitting ? <LoaderCircle size={17} className="animate-spin" /> : <ShieldCheck size={17} />}
+              دخول
+            </button>
+          </form>
+
+          <div className="rounded-xl border border-[var(--border)] bg-white p-4">
             <button
               type="button"
               onClick={() => setShowAdvanced((current) => !current)}
               className="flex w-full items-center justify-between gap-4 text-right"
             >
               <div>
-                <h4 className="text-lg font-semibold text-white">خيارات متقدمة</h4>
-                <p className="mt-1 text-sm text-slate-300">
-                  غيّر رابط الخادم أو استخدم JWT يدويًا فقط إذا احتجت ذلك.
-                </p>
+                <h4 className="text-sm font-bold text-[var(--foreground)]">خيارات متقدمة</h4>
+                <p className="mt-1 text-xs leading-6 text-[var(--muted)]">تغيير رابط الـ API أو استخدام JWT يدوي.</p>
               </div>
-              <ChevronDown
-                size={18}
-                className={`text-slate-300 transition ${showAdvanced ? "rotate-180" : ""}`}
-              />
+              <ChevronDown size={17} className={showAdvanced ? "rotate-180 text-[var(--muted)]" : "text-[var(--muted)]"} />
             </button>
 
             {showAdvanced ? (
-              <div className="mt-5 space-y-4 border-t border-white/10 pt-5">
-                <label className="block text-sm text-slate-300">
+              <div className="mt-4 space-y-4 border-t border-[var(--border)] pt-4">
+                <label className="block text-sm font-medium text-[var(--foreground)]">
                   عنوان الـ API
                   <input
                     value={baseUrl}
                     onChange={(event) => setBaseUrl(event.target.value)}
-                    className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-left text-sm outline-none transition focus:border-cyan-400/40"
+                    className="admin-field mt-2 text-left"
                     dir="ltr"
-                    placeholder="https://your-backend-domain/api/v1"
                   />
                 </label>
 
-                <button
-                  type="button"
-                  onClick={() => setBaseUrl(configuredBaseUrl)}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:bg-white/5"
-                >
-                  <RotateCcw size={16} />
+                <button type="button" onClick={() => setBaseUrl(configuredBaseUrl)} className="admin-secondary-button">
+                  <RotateCcw size={15} />
                   استخدام الخادم المضبوط
                 </button>
 
-                <label className="block text-sm text-slate-300">
+                <label className="block text-sm font-medium text-[var(--foreground)]">
                   رمز JWT
                   <textarea
                     value={manualToken}
                     onChange={(event) => setManualToken(event.target.value)}
-                    className="mt-2 h-40 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-left text-sm outline-none transition focus:border-cyan-400/40"
+                    className="admin-field mt-2 h-32 text-left"
                     dir="ltr"
-                    placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
                   />
                 </label>
 
-                <div className="flex flex-wrap gap-3">
-                  <button
-                    onClick={handleManualTokenSave}
-                    disabled={submitting}
-                    className="inline-flex flex-1 items-center justify-center gap-3 rounded-2xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-3 font-semibold text-cyan-100 transition hover:bg-cyan-500/20 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {submitting ? (
-                      <LoaderCircle size={18} className="animate-spin" />
-                    ) : (
-                      <PlugZap size={18} />
-                    )}
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <button onClick={handleManualTokenSave} disabled={submitting} className="admin-primary-button flex-1 disabled:opacity-60">
+                    {submitting ? <LoaderCircle size={17} className="animate-spin" /> : <PlugZap size={17} />}
                     حفظ الرمز
                   </button>
-
-                  <button
-                    onClick={handleLogout}
-                    type="button"
-                    className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:bg-white/5"
-                  >
+                  <button onClick={handleLogout} type="button" className="admin-secondary-button">
                     مسح الجلسة
                   </button>
                 </div>
