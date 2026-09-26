@@ -313,12 +313,23 @@ async function safeFetch(input: RequestInfo | URL, init?: RequestInit) {
 
 async function parseResponse<T>(response: Response): Promise<T> {
   const json = (await response.json().catch(() => ({}))) as Record<string, unknown>;
-  const message =
+  const errorPayload =
+    json.error && typeof json.error === "object"
+      ? (json.error as Record<string, unknown>)
+      : null;
+  const errorCode = typeof errorPayload?.code === "string" ? errorPayload.code : "";
+  let message =
     typeof json.message === "string"
       ? json.message
       : response.ok
         ? "تم تنفيذ الطلب بنجاح."
         : "تعذر تنفيذ الطلب.";
+
+  if (errorCode === "GOOGLE_SIGN_IN_REQUIRED") {
+    message = "هذا الحساب مسجل عبر Google. استخدم زر «المتابعة باستخدام Google» للدخول بنفس حساب المنصة.";
+  } else if (errorCode === "INVALID_CREDENTIALS") {
+    message = "البريد أو كلمة المرور غير صحيحة. إذا كنت تدخل المنصة عبر Google فاستخدم زر Google بدل كلمة المرور.";
+  }
 
   if (!response.ok || json.success === false) {
     if (response.status === 401) {
