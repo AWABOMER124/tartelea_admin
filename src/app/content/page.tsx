@@ -216,8 +216,8 @@ export default function ContentPage() {
   return (
     <div className="space-y-8">
       <section>
-        <h2 className="text-3xl font-black text-white">مكتبة المحتوى</h2>
-        <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-300">
+        <h2 className="text-3xl font-black text-[var(--foreground)]">مكتبة المحتوى</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-7 text-[var(--muted-strong)]">
           إضافة وتحرير وحذف عناصر المحتوى أصبحت تمر عبر الـ Backend API بدل أي اتصال مباشر مع
           قاعدة البيانات من الواجهة.
         </p>
@@ -227,49 +227,49 @@ export default function ContentPage() {
         <Card title={editingId ? "تعديل مادة" : "إضافة مادة جديدة"}>
           <div className="space-y-4">
             {editingId ? (
-              <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-4 text-sm text-cyan-100">
+              <div className="rounded-[9px] border border-[color:rgba(74,44,29,0.16)] bg-[var(--primary-soft)] p-4 text-sm text-[var(--primary)]">
                 أنت الآن تعدّل مادة موجودة. يمكنك حفظ التغييرات أو إلغاء التعديل والعودة لنموذج
                 الإضافة.
               </div>
             ) : null}
 
-            <label className="block text-sm text-slate-300">
+            <label className="block text-sm text-[var(--muted-strong)]">
               العنوان
               <input
                 value={form.title}
                 onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
-                className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+                className="mt-2 w-full rounded-[9px] border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-[color:rgba(74,44,29,0.32)]"
               />
             </label>
 
-            <label className="block text-sm text-slate-300">
+            <label className="block text-sm text-[var(--muted-strong)]">
               الوصف
               <textarea
                 value={form.description}
                 onChange={(event) =>
                   setForm((current) => ({ ...current, description: event.target.value }))
                 }
-                className="mt-2 h-28 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+                className="mt-2 h-28 w-full rounded-[9px] border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-[color:rgba(74,44,29,0.32)]"
               />
             </label>
 
-            <label className="block text-sm text-slate-300">
+            <label className="block text-sm text-[var(--muted-strong)]">
               النص الكامل الذي سيظهر للمستخدم
               <textarea
                 value={form.content}
                 onChange={(event) => setForm((current) => ({ ...current, content: event.target.value }))}
-                className="mt-2 h-56 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm leading-7 outline-none focus:border-cyan-400/30"
+                className="mt-2 h-56 w-full rounded-[9px] border border-[var(--border)] bg-white px-4 py-3 text-sm leading-7 outline-none focus:border-[color:rgba(74,44,29,0.32)]"
                 placeholder="اكتب نص المقال أو المادة كاملاً..."
               />
             </label>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <label className="block text-sm text-slate-300">
+              <label className="block text-sm text-[var(--muted-strong)]">
                 النوع
                 <select
                   value={form.type}
                   onChange={(event) => setForm((current) => ({ ...current, type: event.target.value }))}
-                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+                  className="mt-2 w-full rounded-[9px] border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-[color:rgba(74,44,29,0.32)]"
                 >
                   {typeOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -279,14 +279,14 @@ export default function ContentPage() {
                 </select>
               </label>
 
-              <label className="block text-sm text-slate-300">
+              <label className="block text-sm text-[var(--muted-strong)]">
                 التصنيف
                 <select
                   value={form.category}
                   onChange={(event) =>
                     setForm((current) => ({ ...current, category: event.target.value }))
                   }
-                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+                  className="mt-2 w-full rounded-[9px] border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-[color:rgba(74,44,29,0.32)]"
                 >
                   {categoryOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -297,43 +297,43 @@ export default function ContentPage() {
               </label>
             </div>
 
-            <label className="block text-sm text-slate-300">
+            <label className="block text-sm text-[var(--muted-strong)]">
               رابط الوسيط أو الملف
               <input
                 value={form.media_url}
                 onChange={(event) =>
                   setForm((current) => ({ ...current, media_url: event.target.value }))
                 }
-                className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-left text-sm outline-none focus:border-cyan-400/30"
+                className="mt-2 w-full rounded-[9px] border border-[var(--border)] bg-white px-4 py-3 text-left text-sm outline-none focus:border-[color:rgba(74,44,29,0.32)]"
                 dir="ltr"
               />
             </label>
 
-            <label className="block text-sm text-slate-300">
+            <label className="block text-sm text-[var(--muted-strong)]">
               رابط الصورة المصغرة
               <input
                 value={form.thumbnail_url}
                 onChange={(event) =>
                   setForm((current) => ({ ...current, thumbnail_url: event.target.value }))
                 }
-                className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-left text-sm outline-none focus:border-cyan-400/30"
+                className="mt-2 w-full rounded-[9px] border border-[var(--border)] bg-white px-4 py-3 text-left text-sm outline-none focus:border-[color:rgba(74,44,29,0.32)]"
                 dir="ltr"
               />
             </label>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <label className="block text-sm text-slate-300">
+              <label className="block text-sm text-[var(--muted-strong)]">
                 المدة
                 <input
                   value={form.duration}
                   onChange={(event) =>
                     setForm((current) => ({ ...current, duration: event.target.value }))
                   }
-                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+                  className="mt-2 w-full rounded-[9px] border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-[color:rgba(74,44,29,0.32)]"
                 />
               </label>
 
-              <label className="block text-sm text-slate-300">
+              <label className="block text-sm text-[var(--muted-strong)]">
                 مستوى العمق
                 <input
                   type="number"
@@ -345,7 +345,7 @@ export default function ContentPage() {
                       depth_level: Number.parseInt(event.target.value || "1", 10),
                     }))
                   }
-                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+                  className="mt-2 w-full rounded-[9px] border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-[color:rgba(74,44,29,0.32)]"
                 />
               </label>
             </div>
@@ -353,7 +353,7 @@ export default function ContentPage() {
             <button
               onClick={handleSaveContent}
               disabled={saving || session.user?.role !== "admin"}
-              className="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-cyan-500 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex w-full items-center justify-center gap-3 rounded-[9px] bg-[var(--primary)] px-4 py-3 font-semibold text-white transition hover:bg-[var(--primary)] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {saving ? <LoaderCircle size={18} className="animate-spin" /> : <Plus size={18} />}
               {editingId ? "حفظ التعديلات" : "إضافة المادة"}
@@ -363,7 +363,7 @@ export default function ContentPage() {
               <button
                 onClick={resetForm}
                 type="button"
-                className="inline-flex w-full items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 font-semibold text-white transition hover:bg-white/[0.08]"
+                className="inline-flex w-full items-center justify-center gap-3 rounded-[9px] border border-[var(--border)] bg-white px-4 py-3 font-semibold text-[var(--foreground)] transition hover:bg-white/[0.08]"
               >
                 <X size={18} />
                 إلغاء التعديل
@@ -375,26 +375,26 @@ export default function ContentPage() {
         <Card title="العناصر المنشورة">
           <div className="space-y-4">
             <div className="grid gap-4 md:grid-cols-[1.2fr_0.8fr_0.8fr]">
-              <label className="relative block text-sm text-slate-300">
+              <label className="relative block text-sm text-[var(--muted-strong)]">
                 البحث
                 <Search
-                  className="pointer-events-none absolute right-4 top-[3.25rem] -translate-y-1/2 text-slate-500"
+                  className="pointer-events-none absolute right-4 top-[3.25rem] -translate-y-1/2 text-[var(--muted)]"
                   size={18}
                 />
                 <input
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="ابحث بالعنوان أو الوصف..."
-                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 py-3 pr-12 pl-4 text-sm outline-none focus:border-cyan-400/30"
+                  className="mt-2 w-full rounded-[9px] border border-[var(--border)] bg-white py-3 pr-12 pl-4 text-sm outline-none focus:border-[color:rgba(74,44,29,0.32)]"
                 />
               </label>
 
-              <label className="block text-sm text-slate-300">
+              <label className="block text-sm text-[var(--muted-strong)]">
                 تصفية النوع
                 <select
                   value={typeFilter}
                   onChange={(event) => setTypeFilter(event.target.value)}
-                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+                  className="mt-2 w-full rounded-[9px] border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-[color:rgba(74,44,29,0.32)]"
                 >
                   <option value="all">كل الأنواع</option>
                   {typeOptions.map((option) => (
@@ -405,12 +405,12 @@ export default function ContentPage() {
                 </select>
               </label>
 
-              <label className="block text-sm text-slate-300">
+              <label className="block text-sm text-[var(--muted-strong)]">
                 تصفية التصنيف
                 <select
                   value={categoryFilter}
                   onChange={(event) => setCategoryFilter(event.target.value)}
-                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-400/30"
+                  className="mt-2 w-full rounded-[9px] border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-[color:rgba(74,44,29,0.32)]"
                 >
                   <option value="all">كل التصنيفات</option>
                   {categoryOptions.map((option) => (
@@ -423,19 +423,19 @@ export default function ContentPage() {
             </div>
 
             {loading ? (
-              <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 text-center text-sm text-slate-400">
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-6 text-center text-sm text-[var(--muted)]">
                 <span className="inline-flex items-center gap-3">
                   <LoaderCircle size={16} className="animate-spin" />
                   جارٍ تحميل المكتبة...
                 </span>
               </div>
             ) : contents.length === 0 ? (
-              <p className="text-sm text-slate-400">لا توجد عناصر محتوى بعد.</p>
+              <p className="text-sm text-[var(--muted)]">لا توجد عناصر محتوى بعد.</p>
             ) : (
               contents.map((item) => (
                 <div
                   key={item.id}
-                  className="rounded-3xl border border-white/10 bg-white/[0.03] p-5"
+                  className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-5"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-3">
@@ -453,13 +453,13 @@ export default function ContentPage() {
                         />
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold text-white">{item.title}</h3>
-                        <p className="mt-2 text-sm leading-7 text-slate-300">
+                        <h3 className="text-lg font-semibold text-[var(--foreground)]">{item.title}</h3>
+                        <p className="mt-2 text-sm leading-7 text-[var(--muted-strong)]">
                           {item.description || "بدون وصف تفصيلي."}
                         </p>
-                        {item.content ? <p className="mt-2 line-clamp-3 text-xs leading-6 text-slate-400">{item.content}</p> : null}
+                        {item.content ? <p className="mt-2 line-clamp-3 text-xs leading-6 text-[var(--muted)]">{item.content}</p> : null}
                       </div>
-                      <div className="flex flex-wrap gap-4 text-xs text-slate-500">
+                      <div className="flex flex-wrap gap-4 text-xs text-[var(--muted)]">
                         <span>التاريخ: {formatDate(item.created_at)}</span>
                         <span>العمق: {item.depth_level ?? 1}</span>
                       </div>
@@ -469,7 +469,7 @@ export default function ContentPage() {
                       <button
                         onClick={() => handleEditContent(item)}
                         disabled={session.user?.role !== "admin"}
-                        className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-3 text-cyan-100 transition hover:bg-cyan-500/20"
+                        className="rounded-[9px] border border-[color:rgba(74,44,29,0.16)] bg-[var(--primary-soft)] p-3 text-[var(--primary)] transition hover:bg-[var(--primary)]/20"
                       >
                         <PencilLine size={16} />
                       </button>
@@ -477,7 +477,7 @@ export default function ContentPage() {
                       <button
                         onClick={() => handleDeleteContent(item.id)}
                         disabled={session.user?.role !== "admin"}
-                        className="rounded-2xl border border-rose-400/20 bg-rose-500/10 p-3 text-rose-200 transition hover:bg-rose-500/20"
+                        className="rounded-[9px] border border-[color:rgba(181,75,75,0.18)] bg-[var(--danger-soft)] p-3 text-[var(--danger)] transition hover:bg-rose-500/20"
                       >
                         <Trash2 size={16} />
                       </button>
