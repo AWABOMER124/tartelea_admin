@@ -106,18 +106,18 @@ export default function ReportsPage() {
             <div className="h-80 pt-4">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={stats.trends.dailySignups}>
-                  <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
-                  <XAxis dataKey="label" stroke="rgba(203,213,225,0.7)" tickLine={false} axisLine={false} />
-                  <YAxis stroke="rgba(203,213,225,0.7)" tickLine={false} axisLine={false} />
+                  <CartesianGrid stroke="#eee8df" vertical={false} />
+                  <XAxis dataKey="label" stroke="#8b8078" tickLine={false} axisLine={false} />
+                  <YAxis stroke="#8b8078" tickLine={false} axisLine={false} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#07131c",
-                      borderColor: "rgba(255,255,255,0.08)",
+                      backgroundColor: "#ffffff",
+                      borderColor: "#e3ddd5",
                       borderRadius: "16px",
                     }}
                   />
                   <Legend />
-                  <Bar dataKey="total" name="تسجيلات" radius={[12, 12, 0, 0]} fill="#38bdf8" />
+                  <Bar dataKey="total" name="تسجيلات" radius={[12, 12, 0, 0]} fill="#4a2c1d" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -138,14 +138,14 @@ export default function ReportsPage() {
                     {stats.trends.contentDistribution.map((entry, index) => (
                       <Cell
                         key={`${entry.name}-${index}`}
-                        fill={["#38bdf8", "#10b981", "#f59e0b"][index % 3]}
+                        fill={["#4a2c1d", "#4f755f", "#b58a35"][index % 3]}
                       />
                     ))}
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#07131c",
-                      borderColor: "rgba(255,255,255,0.08)",
+                      backgroundColor: "#ffffff",
+                      borderColor: "#e3ddd5",
                       borderRadius: "16px",
                     }}
                   />
@@ -166,17 +166,17 @@ export default function ReportsPage() {
                     { label: "مثبتات", value: stats.overview.totalPinned },
                   ]}
                 >
-                  <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
-                  <XAxis dataKey="label" stroke="rgba(203,213,225,0.7)" tickLine={false} axisLine={false} />
-                  <YAxis stroke="rgba(203,213,225,0.7)" tickLine={false} axisLine={false} />
+                  <CartesianGrid stroke="#eee8df" vertical={false} />
+                  <XAxis dataKey="label" stroke="#8b8078" tickLine={false} axisLine={false} />
+                  <YAxis stroke="#8b8078" tickLine={false} axisLine={false} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#07131c",
-                      borderColor: "rgba(255,255,255,0.08)",
+                      backgroundColor: "#ffffff",
+                      borderColor: "#e3ddd5",
                       borderRadius: "16px",
                     }}
                   />
-                  <Line type="monotone" dataKey="value" stroke="#f59e0b" strokeWidth={3} />
+                  <Line type="monotone" dataKey="value" stroke="#b58a35" strokeWidth={3} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
