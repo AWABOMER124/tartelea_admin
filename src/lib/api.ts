@@ -358,6 +358,18 @@ export function getGoogleClientId() {
   return process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim() || "";
 }
 
+export async function getPublicAuthConfig(baseUrl?: string) {
+  const resolvedBaseUrl = normalizeBaseUrl(baseUrl);
+  const response = await safeFetch(`${resolvedBaseUrl}/auth/config`, {
+    cache: "no-store",
+  });
+
+  return parseResponse<{
+    googleClientId?: string | null;
+    googleEnabled?: boolean;
+  }>(response);
+}
+
 function buildSessionFromAuthPayload(
   resolvedBaseUrl: string,
   json: {
