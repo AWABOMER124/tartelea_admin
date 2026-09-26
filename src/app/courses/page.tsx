@@ -17,8 +17,8 @@ const courseFields = [
   { key: "type", label: "نوع المادة", type: "select" as const, options: [
     { value: "video", label: "فيديو" }, { value: "audio", label: "صوتي" }, { value: "article", label: "مقال" },
   ] },
-  { key: "depth_level", label: "مرحلة الرحلة", type: "select" as const, options: [
-    { value: "beginner", label: "تخلية" }, { value: "intermediate", label: "تحلية" }, { value: "advanced", label: "تجلّي" },
+  { key: "depth_level", label: "المرحلة", type: "select" as const, options: [
+    { value: "beginner", label: "خلع — تخلية" }, { value: "intermediate", label: "تدبّر — تحلية" }, { value: "advanced", label: "تحرّر — تجلّي" },
   ] },
   { key: "price", label: "السعر", type: "number" as const, min: 0 },
   { key: "thumbnail_url", label: "رابط صورة الغلاف", type: "url" as const },
