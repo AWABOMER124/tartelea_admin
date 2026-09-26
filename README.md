@@ -46,11 +46,13 @@ npm run dev
 
 ```env
 NEXT_PUBLIC_API_BASE_URL=https://api.tartelea.com/api/v1
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=<same Google Web client ID used by tartelea.com>
 ADMIN_ALLOWED_HOSTS=admin.tartelea.com
 ```
 
 - اربط خدمة هذه اللوحة بنطاق الإدارة فقط، مثل `admin.tartelea.com`، ولا تمررها عبر نطاق الموقع العام.
 - أضف `https://admin.tartelea.com` إلى `ALLOWED_ORIGINS` في خدمة الـ backend.
-- يتم تضمين عنوان الـ API وقت بناء تطبيق Next.js، لذلك يجب تمريره كـ build argument عند استخدام Docker.
+- يتم تضمين عنوان الـ API وGoogle Client ID وقت بناء تطبيق Next.js، لذلك يجب تمريرهما كـ build arguments عند استخدام Docker.
+- استخدم نفس Google Web Client ID المستخدم في المنصة الرئيسية حتى يعمل نفس حساب Google في لوحة الإدارة.
 - أي Host غير موجود في `ADMIN_ALLOWED_HOSTS` يحصل على 404، والصفحات تحمل توجيهات `noindex` لمحركات البحث.
 - هذا العزل لا يحل محل الحماية الفعلية: جميع عمليات الكتابة ما زالت تتحقق من JWT ودور `admin` في الـ backend.
