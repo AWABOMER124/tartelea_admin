@@ -5,8 +5,8 @@ import { Header } from "@/components/Header";
 import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
-  title: "بوابة إدارة ترتيلة",
-  description: "واجهة الإدارة الموحدة لمنصة Tartelea عبر Backend API",
+  title: "إدارة المدرسة الترتيلية",
+  description: "لوحة الإدارة المستقلة للمدرسة الترتيلية",
   robots: { index: false, follow: false, noarchive: true },
 };
 
@@ -18,10 +18,10 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl">
       <body>
-        <Header />
         <Sidebar />
-        <main className="min-h-screen bg-app pb-24 pt-24 lg:pr-72 lg:pb-0">
-          <div className="mx-auto max-w-[1600px] p-4 sm:p-6 lg:p-8">{children}</div>
+        <Header />
+        <main className="min-h-screen bg-app pb-8 pt-[76px] lg:pr-60 lg:pt-[72px]">
+          <div className="mx-auto w-full max-w-[1480px] p-4 sm:p-6 lg:p-8">{children}</div>
         </main>
         <Toaster position="bottom-left" reverseOrder={false} />
       </body>
